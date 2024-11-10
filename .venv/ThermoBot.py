@@ -13,6 +13,7 @@ client = commands.Bot(command_prefix='!', intents=intents)
 debugChannelID = 1280991837913481278
 quoteChannelID = 1280656734196596858
 organizeEventsChannelID = 1299157684162920479
+actionLogChannelID = 1305223850153480245
 
 poll_question = "When and where are we doing family dinner?"
 poll_options = ["McNair", "Wads", "4:30", "5:00", "5:30", "6:00"]
@@ -85,21 +86,25 @@ async def on_message(message):
 
 
     if message.channel.id == quoteChannelID and not message.author.bot:
-        print(f"Checking message: {message.content}")  # Debugging output
+        await actionLogMessage(f"Checking message by {message.author}: {message.content}")
         # Check if the message does not contain either quote
         if '"' not in message.content and "'" not in message.content\
                 and '“' not in message.content:
-            print("Deleting message: No quotes found")  # Debugging output
+            await actionLogMessage("Deleting message: No quotes found")
             try:
                 await message.delete()
             except discord.Forbidden:
-                print("Missing permissions to delete messages.")
+                await actionLogMessage("Missing permissions to delete messages.")
             except discord.HTTPException:
-                print("Failed to delete the message.")
+                await actionLogMessage("Failed to delete the message.")
         else:
-            print("Message retained: Quotes found")  # Debugging output
+            await actionLogMessage("Message retained: Quotes found")  # Debugging output
 
     await client.process_commands(message)
+
+async def actionLogMessage(message):
+    channel = client.get_channel(actionLogChannelID)
+    await channel.send(message)
 
 try:
     with open("Token", 'r') as file:
