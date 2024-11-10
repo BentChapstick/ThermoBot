@@ -22,20 +22,23 @@ async def schedule_daily_poll():
     await client.wait_until_ready()
     channel = client.get_channel(organizeEventsChannelID)
     while not client.is_closed():
-        now = datetime.datetime.now()
-        target_time = now.replace(hour=9, minute=0, second=0, microsecond=0)  # Set your desired time here
+        try:
+            now = datetime.datetime.now()
+            target_time = now.replace(hour=9, minute=0, second=0, microsecond=0)
 
-        # If the target time is in the past, set it for the next day
-        if now > target_time:
-            target_time += datetime.timedelta(days=1)
+            if now > target_time:
+                target_time += datetime.timedelta(days=1)
 
-        # Calculate the delay until the target time
-        delay = (target_time - now).total_seconds()
-        await asyncio.sleep(delay)  # Wait until the target time
+            delay = (target_time - now).total_seconds()
+            await asyncio.sleep(delay)
 
-        # Now we can run the poll
-        await run_dinner_poll(channel)
-
+            # Run the poll
+            await run_dinner_poll(channel)
+        except asyncio.CancelledError:
+            break  # Gracefully stop the loop if the task is cancelled
+        except Exception as e:
+            print(f"Error in scheduled poll task: {e}")
+            await asyncio.sleep(60)  # Try again after a minute in case of unexpected error
 
 async def run_dinner_poll(channel):
     if channel:
@@ -67,7 +70,7 @@ async def on_ready():
 @client.command()
 async def start_poll(ctx):
     """Manually start the daily poll."""
-    channel = client.get_channel(debugChannelID)
+    channel = client.get_channel(organizeEventsChannelID)
     await run_dinner_poll(channel)
 
 
@@ -107,3 +110,8 @@ except FileNotFoundError:
 except Exception as e:
     print(f"An error occurred: {e}")
     exit(1)
+
+try:
+    client.run(token)
+except Exception as e:
+    print(f"An error occurred: {e}")
