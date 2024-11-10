@@ -46,9 +46,16 @@ async def run_dinner_poll(channel):
         message = await channel.send(poll_message)
 
         # Add Unicode reactions for the options
-        unicode_numbers = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣']
+        unicode_numbers = ['🇲', '🇼', '🕟', '🕔', '🕠', '🕕']
         for index in range(len(poll_options)):
             await message.add_reaction(unicode_numbers[index])
+
+        # Wait for 24 hours before closing the poll
+        await asyncio.sleep(86400)  # 24 hours in seconds
+
+        # Optional: Send a message about the poll results or delete the poll
+        await message.delete()  # Delete the poll message after 24 hours
+        await channel.send("The poll has ended!")
 
 
 @client.event
@@ -60,7 +67,7 @@ async def on_ready():
 @client.command()
 async def start_poll(ctx):
     """Manually start the daily poll."""
-    channel = client.get_channel(organizeEventsChannelID)
+    channel = client.get_channel(debugChannelID)
     await run_dinner_poll(channel)
 
 
@@ -69,10 +76,16 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+    if not message.author.bot:
+        if 'Ping' in message.content or 'ping' in message.content:
+            await message.channel.send('Pong')
+
+
     if message.channel.id == quoteChannelID and not message.author.bot:
         print(f"Checking message: {message.content}")  # Debugging output
         # Check if the message does not contain either quote
-        if '"' not in message.content and "'" not in message.content:
+        if '"' not in message.content and "'" not in message.content\
+                and '“' not in message.content:
             print("Deleting message: No quotes found")  # Debugging output
             try:
                 await message.delete()
@@ -85,6 +98,12 @@ async def on_message(message):
 
     await client.process_commands(message)
 
-with open("Token", 'r') as file:
-    token = file.read()
-client.run(token)
+try:
+    with open("Token", 'r') as file:
+        token = file.read()
+except FileNotFoundError:
+    print("Token file not found. Please ensure the 'Token' file exists.")
+    exit(1)
+except Exception as e:
+    print(f"An error occurred: {e}")
+    exit(1)
