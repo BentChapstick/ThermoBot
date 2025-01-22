@@ -54,13 +54,26 @@ async def run_dinner_poll(channel):
         for index in range(len(poll_options)):
             await message.add_reaction(unicode_numbers[index])
 
-        # Wait for 24 hours before closing the poll
-        await asyncio.sleep(86400)  # 24 hours in seconds
+        # Wait for 7 hours before closing the poll (end at 4pm)
+        await asyncio.sleep(25200)  # 7 hours in seconds
+        end_dinner_poll(channel,message)
 
-        # Optional: Send a message about the poll results or delete the poll
-        await message.delete()  # Delete the poll message after 24 hours
-        await channel.send("The poll has ended!")
-
+async def end_dinner_poll(channel, message):
+    # Send a message about the poll results and delete the poll
+    # Determine poll results
+    results = message.reactions
+    max_votes = 0
+    time_winner = null
+    if results[0].count > results[1].count:
+        channel.send("Magnificent McNasty meal")
+    else:
+        channel.send("Wonderful Wads wins")
+    for i in range(2, 6):
+        if results[i].count > max_votes:
+            max_votes = results[i]
+            time_winner = results[i]
+    channel.send("eating time at %s" % time_winner.emoji)
+    await message.delete()  # Delete the poll message
 
 @client.event
 async def on_ready():
@@ -70,10 +83,9 @@ async def on_ready():
 
 @client.command()
 async def start_poll(ctx):
-    """Manually start the daily poll."""
+    # Manually start the daily poll
     channel = client.get_channel(organizeEventsChannelID)
     await run_dinner_poll(channel)
-
 
 @client.event
 async def on_message(message):
