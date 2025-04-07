@@ -2,6 +2,9 @@ import discord
 from discord.ext import commands, tasks
 import datetime
 import asyncio
+import foodBot
+from chartwells_query import main
+
 
 # Bot intents
 intents = discord.Intents.default()
@@ -12,7 +15,8 @@ client = commands.Bot(command_prefix='!', intents=intents)
 # Channel IDs
 debugChannelID = 1280991837913481278
 quoteChannelID = 1280656734196596858
-organizeEventsChannelID = 1299157684162920479
+organizeEventsChannelID = 772510418920144936 
+# organizeEventsChannelID = 1299157684162920479
 actionLogChannelID = 1305223850153480245
 
 poll_question = "When and where are we doing family dinner?"
@@ -33,6 +37,9 @@ async def schedule_daily_poll():
             delay = (target_time - now).total_seconds()
             await asyncio.sleep(delay)
 
+            # Get dinner options
+            await dinnerOptions(channel)
+
             # Run the poll
             await run_dinner_poll(channel)
         except asyncio.CancelledError:
@@ -43,6 +50,7 @@ async def schedule_daily_poll():
 
 async def run_dinner_poll(channel):
     if channel:
+
         poll_message = f"**Din Din Poll:** {poll_question}\n"
         poll_message += "\n".join([f"{index + 1}. {option}" for index, option in enumerate(poll_options)])
         poll_message += "\nReact with the number of your choice!"
@@ -75,6 +83,53 @@ async def end_dinner_poll(channel, message):
     channel.send("eating time at %s" % time_winner.emoji)
     await message.delete()  # Delete the poll message
 
+# Read database and send the dinner options
+async def dinnerOptions(channel):
+    menu = foodBot.getMeals("Dinner")
+
+    text = ""
+
+    locations = ["Wadsworth", "DHH", "McNair"]
+
+    text += f"# Todays Options\n"
+
+    text += f"## Wads\n"
+
+    locations = ["Homestyle", "Flame", "Delicious Without"]
+    for x in range( 0 ,3):
+        text += f"### {locations[x]}\n"
+
+        for item in menu[0][x]:
+            text += ("- " + item + '\n')
+
+    text += f"### DHH\n"
+
+    if( menu[1][0][0] is not None ):
+
+        locations = ["Homestyle", "Flame", "Chef Francisco Soups"]
+        for x in range( 0 ,3):
+            text += f"### {locations[x]}\n"
+
+            for item in menu[1][x]:
+                text += ("- " + item + '\n')
+
+    else:
+        text += "- Closed\n"
+
+    
+    text += f"## McNair\n"
+
+    locations = ["Flame", "The Kitchen", "Chef Francisco Soups"]
+    for x in range( 0 ,3):
+        text += f"### {locations[x]}\n"
+
+        for item in menu[2][x]:
+            text += ("- " + item + '\n')
+
+
+    await channel.send(text)
+
+
 @client.event
 async def on_ready():
     print(f'We have logged in as {client.user}')
@@ -85,7 +140,17 @@ async def on_ready():
 async def start_poll(ctx):
     # Manually start the daily poll
     channel = client.get_channel(organizeEventsChannelID)
-    await run_dinner_poll(channel)
+    await dinnerOptions(channel)
+
+    await run_dinner_poll(channel)    
+
+#Pull and populate the Database with food options.
+@client.command()
+async def pullMenu(ctx):
+    print("Getting new menu")
+    client.loop.create_task(update_menu())
+
+
 
 @client.event
 async def on_message(message):
@@ -132,3 +197,5 @@ try:
     client.run(token)
 except Exception as e:
     print(f"An error occurred: {e}")
+
+
