@@ -2,6 +2,9 @@ import discord
 from discord.ext import commands, tasks
 import datetime
 import asyncio
+import zoneinfo
+
+#Referenced Files
 import foodBot
 from chartwells_query import main
 
@@ -150,7 +153,12 @@ async def pullMenu(ctx):
     print("Getting new menu")
     client.loop.create_task(update_menu())
 
+# region AutoLooped Tasks
+@tasks.loop(time=datetime.time(hour=8, minute=50, tzinfo=zoneinfo.ZoneInfo("America/Detroit"))) #Refresh Menu at 8:50am
+async def pullMenu():
+    update_menu()
 
+# endregion
 
 @client.event
 async def on_message(message):
@@ -158,7 +166,7 @@ async def on_message(message):
         return
 
     if not message.author.bot:
-        if 'Ping' in message.content or 'ping' in message.content:
+        if 'Ping' in message.content or 'ping' in message.content.lower():
             await message.channel.send('Pong')
 
 

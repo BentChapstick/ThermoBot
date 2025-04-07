@@ -5,6 +5,8 @@ import time
 import os
 from datetime import datetime, timezone, timedelta
 from fake_useragent import UserAgent
+from time import mktime, localtime, strftime
+import termcolor as tc
 
 # Initialize scraper to bypass Cloudflare
 scraper = cloudscraper.create_scraper()
@@ -27,7 +29,7 @@ period_request = "https://api.dineoncampus.com/v1/location/{location}/periods?pl
 meal_data_request = "https://api.dineoncampus.com/v1/location/{location}/periods/{period}?platform=0&date={date}"
 
 dining_locations = {}
-request_spacing_seconds = 1
+request_spacing_seconds = .5
 
 def main():
     db_connection = sqlite3.connect(database_path)
@@ -40,21 +42,22 @@ def main():
         dining_locations[row[0]] = row[1]
 
     for date in dates:
+        date_time = dates[date]
         for location in dining_locations:
-            print(f"Grabbing periods for {dates[date]} {location}")
-            periods = get_periods(date, location)
+            print(f"Grabbing periods for {date_time} {location}")
+            periods = get_periods(date_time, location)
             period_data = [{"name": p["name"], "UUID": p["id"]} for p in periods]
             db_cursor.executemany("INSERT OR REPLACE INTO time VALUES (:name, :UUID)", period_data)
             
             for period in period_data:
-                meal_json = get_meal_data(period["UUID"], date, location)
+                meal_json = get_meal_data(period["UUID"], date_time, location)
                 if meal_json != -1:
-                    process_meal_data(meal_json, period, date, location, db_cursor)
+                    process_meal_data(meal_json, period, date_time, location, db_cursor)
             
             db_connection.commit()
 
-def get_periods(date, location):
-    request_string = period_request.format(date=dates[date], location=dining_locations[location])
+def get_periods(date_time: str, location: str) -> list:
+    request_string = period_request.format(date=date_time, location=dining_locations[location])
     try:
         headers = {"User-Agent": ua.random}  # Randomized user agent
         response = scraper.get(request_string, headers=headers, timeout=30)
@@ -69,8 +72,8 @@ def get_periods(date, location):
         print(f"Error fetching periods: {e}")
     return []
 
-def get_meal_data(period, date, location):
-    request_string = meal_data_request.format(period=period, date=dates[date], location=dining_locations[location])
+def get_meal_data(period, date_time, location):
+    request_string = meal_data_request.format(period=period, date=date_time, location=dining_locations[location])
     try:
         headers = {"User-Agent": ua.random}  # Randomized user agent
         response = scraper.get(request_string, headers=headers, timeout=30)
@@ -84,14 +87,14 @@ def get_meal_data(period, date, location):
         print(f"Error fetching meal data: {e}")
     return -1
 
-def process_meal_data(meal_json, period, date, location, db_cursor):
+def process_meal_data(meal_json, period, date_time, location, db_cursor):
     categories = meal_json.get("menu", {}).get("periods", {}).get("categories", [])
     for category in categories:
         station_name = category["name"]
         for item in category["items"]:
             item.update({
                 "time": period["name"],
-                "date": dates[date],
+                "date": date_time,
                 "location": location,
                 "station": station_name,
                 "nutrients_json": handle_nutrients(db_cursor, item)
@@ -105,7 +108,7 @@ def process_meal_data(meal_json, period, date, location, db_cursor):
             db_cursor.execute("INSERT OR REPLACE INTO menuItems VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (item["name"], station_name, item.get("ingredients", ""), item.get("portion", ""),
                 item.get("desc", ""), item["nutrients_json"], item.get("calories", ""),
-                dates[date], period["name"], location, item["allergens_json"], item["labels_json"], item.get("sort_order", 0)))
+                date_time, period["name"], location, item["allergens_json"], item["labels_json"], item.get("sort_order", 0)))
 
 def handle_nutrients(db_cursor, item):
     nutrients_list = [{"name": n["name"], "value": n["value"], "uom": n["uom"], "value_numeric": n.get("value_numeric", "")} for n in item.get("nutrients", [])]
@@ -114,4 +117,7 @@ def handle_nutrients(db_cursor, item):
     return str(nutrients_list)
 
 if __name__ == "__main__":
+    startTime = localtime()
     main()
+    endTime =  localtime()
+    print(tc.colored("Nickname update complete at " + strftime("%H:%M:%S %m-%d-%y", endTime) + ". Took: " + strftime("%M:%S", (localtime(mktime(endTime) - mktime(startTime)))), color="yellow", on_color="on_light_grey"))
