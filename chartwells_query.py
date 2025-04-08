@@ -120,4 +120,4 @@ if __name__ == "__main__":
     startTime = localtime()
     main()
     endTime =  localtime()
-    print(tc.colored("Nickname update complete at " + strftime("%H:%M:%S %m-%d-%y", endTime) + ". Took: " + strftime("%M:%S", (localtime(mktime(endTime) - mktime(startTime)))), color="yellow", on_color="on_light_grey"))
+    print(tc.colored("Took: " + strftime("%M:%S", (localtime(mktime(endTime) - mktime(startTime)))), color="yellow", on_color="on_light_grey"))
