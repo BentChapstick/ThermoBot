@@ -32,20 +32,8 @@ async def main() -> None:
     meal_targets: list = []
 
 
-    group = await asyncio.gather(*scrape_targets) # process coroutines
-
-    loclist = get_locs(TODAY)
-    update_period(TODAY, loclist, group)
-
-    #group = await asyncio.gather(*meal_targets) # process coroutines
-
     
 
-    print(group)
-    return
-
-async def get_locs(TODAY:str ) -> list:
-    locList = []
     # Get locations from database
     try:
         with sqlite3.connect(DATABASE) as conn:
@@ -59,21 +47,14 @@ async def get_locs(TODAY:str ) -> list:
             print(tc.colored("Access Done",color="green", on_color="on_light_grey"))
     except sqlite3.OperationalError as e:
         print("Failed to open Database: ", e)
-
-    return locList
-
-
-async def update_period(TODAY: str, locList: list, locGroup: asyncio.futures) -> asyncio.coroutines:
-    scrape_targets: list = []
-    meal_targets: list = []
     for i in locList:
         scrape_targets.append(scrape_period(TODAY, i)) # assemble list of coroutines
-
+    group = await asyncio.gather(*scrape_targets) # process coroutines
     try:
         with sqlite3.connect(DATABASE) as conn:
             print(tc.colored(f"Opened SQLite database with version {sqlite3.sqlite_version} successfully." , color="green", on_color="on_light_grey"))
             cur = conn.cursor()
-            for idx, loc in enumerate(locGroup):
+            for idx, loc in enumerate(group):
                 for per in loc:
                     cur.execute("REPLACE INTO time(mealTime, apiUUID) VALUES(?,?)", tuple((per["name"], per["id"])))
                     meal_targets.append(scrape_meals(per["id"], TODAY, locList[idx])) # assembly list of coroutines
@@ -81,7 +62,14 @@ async def update_period(TODAY: str, locList: list, locGroup: asyncio.futures) ->
             print(tc.colored("Access Done",color="green", on_color="on_light_grey"))
     except sqlite3.OperationalError as e:
         print("Failed to open Database: ", e)
-    return meal_targets
+    group = await asyncio.gather(*meal_targets) # process coroutines
+
+    for i in group:
+        print(type(i))
+        # process_meal_data(i, TODAY)
+        with open("file.txt", "w") as f:
+            f.write(str(i))
+    return
 
 async def scrape_period(date_time: str, uuid: str) -> dict:
     TARGET = PERIOD_TARGET.format(date=date_time, location=uuid)
