@@ -156,7 +156,7 @@ async def start_poll(ctx):
 # region AutoLooped Tasks
 @tasks.loop(time=datetime.time(hour=7, minute=5, tzinfo=zoneinfo.ZoneInfo("America/Detroit"))) #Refresh Menu at 7 am
 async def pullMenu():
-    chartwells_queryFast.main()
+    await chartwells_queryFast.main()
 
 # endregion
 
