@@ -30,7 +30,7 @@ async def main() -> None:
     locList: list = []
     scrape_targets: list = []
     meal_targets: list = []
-
+    lookupDict: dict = {}
 
     
 
@@ -43,10 +43,12 @@ async def main() -> None:
             rows = cur.fetchall()
             for row in rows:
                 locList.append(row[1])
+                lookupDict[str(row[1])] = row[0] 
                 
             print(tc.colored("Access Done",color="green", on_color="on_light_grey"))
     except sqlite3.OperationalError as e:
         print("Failed to open Database: ", e)
+    # print(lookupDict)
     for i in locList:
         scrape_targets.append(scrape_period(TODAY, i)) # assemble list of coroutines
     group = await asyncio.gather(*scrape_targets) # process coroutines
@@ -57,18 +59,24 @@ async def main() -> None:
             for idx, loc in enumerate(group):
                 for per in loc:
                     cur.execute("REPLACE INTO time(mealTime, apiUUID) VALUES(?,?)", tuple((per["name"], per["id"])))
-                    meal_targets.append(scrape_meals(per["id"], TODAY, locList[idx])) # assembly list of coroutines
+                    meal_targets.append(scrape_meals(per, TODAY, locList[idx])) # assembly list of coroutines
             conn.commit()
             print(tc.colored("Access Done",color="green", on_color="on_light_grey"))
     except sqlite3.OperationalError as e:
         print("Failed to open Database: ", e)
     group = await asyncio.gather(*meal_targets) # process coroutines
 
-    for i in group:
-        print(type(i))
-        # process_meal_data(i, TODAY)
-        with open("file.txt", "w") as f:
-            f.write(str(i))
+
+    try:
+        with sqlite3.connect(DATABASE) as conn:
+            print(tc.colored(f"Opened SQLite database with version {sqlite3.sqlite_version} successfully." , color="green", on_color="on_light_grey"))
+            cur = conn.cursor()
+            for i in group:
+                process_meal_data(i[1],i[2], TODAY, lookupDict[i[0]], conn)
+            conn.commit()
+            print(tc.colored("Access Done",color="green", on_color="on_light_grey"))
+    except sqlite3.OperationalError as e:
+        print("Failed to open Database: ", e)
     return
 
 async def scrape_period(date_time: str, uuid: str) -> dict:
@@ -87,18 +95,18 @@ async def scrape_period(date_time: str, uuid: str) -> dict:
         
     except Exception as e:
         print(f"Error fetching periods: {e}")
-    print(TARGET)
+    # print(TARGET)
     return []
 
 async def scrape_meals(per: str, date_time: str , uuid: str) -> dict:
-    TARGET = MEAL_TARGET.format(period=per, date=date_time, location=uuid)
+    TARGET = MEAL_TARGET.format(period=per["id"], date=date_time, location=uuid)
     try:
             headers = {"User-Agent": UA.random}  # Randomized user agent
             response = SCRAPER.get(TARGET, headers=headers, timeout=30)
             response.raise_for_status()
 
             if response.status_code == 200:
-                return response.json()
+                return uuid, response.json(), per
             else:
                 return -1
     except Exception as e:

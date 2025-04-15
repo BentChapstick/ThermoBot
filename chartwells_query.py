@@ -52,6 +52,10 @@ def main():
             for period in period_data:
                 meal_json = get_meal_data(period["UUID"], date_time, location)
                 if meal_json != -1:
+                    print("Meal_json: " + str(type(meal_json)) + " | " + str(meal_json)[0:100])
+                    print("Period: " + str(type(period)) + " | " + str(period))
+                    print("Location: " + str(type(location)) + " | " + str(location))
+
                     process_meal_data(meal_json, period, date_time, location, db_cursor)
             
             db_connection.commit()
