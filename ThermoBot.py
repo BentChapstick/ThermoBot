@@ -2,11 +2,13 @@ import discord
 from discord.ext import commands, tasks
 import datetime
 import asyncio
+import zoneinfo
+
+
+#Referenced Files
 import foodBot
-from chartwells_query import main
-
+import chartwells_queryFast
 import xkcd
-
 
 # Bot intents
 intents = discord.Intents.default()
@@ -138,6 +140,7 @@ async def dinnerOptions(channel):
 async def on_ready():
     print(f'We have logged in as {client.user}')
     client.loop.create_task(schedule_daily_poll())  # Start the daily schedule task
+    pullMenu.start()
     await client.tree.sync(guild=discord.Object(id=SERVER))
 
 
@@ -149,12 +152,16 @@ async def start_poll(ctx):
 
     await run_dinner_poll(channel)    
 
-#Pull and populate the Database with food options.
-@client.command()
-async def pullMenu(ctx):
-    print("Getting new menu")
-    client.loop.create_task(update_menu())
+# #Pull and populate the Database with food options.
+# @client.command()
+# async def pullMenu(ctx):
+#     print("Getting new menu")
+#     client.loop.create_task(update_menu())
 
+# region AutoLooped Tasks
+@tasks.loop(time=datetime.time(hour=7, minute=5, tzinfo=zoneinfo.ZoneInfo("America/Detroit"))) #Refresh Menu at 7 am
+async def pullMenu():
+    await chartwells_queryFast.main()
 @client.tree.command( #XKCD Get Current
     name="xkcd-cur",
     description="Current XKCD Comic",
@@ -189,7 +196,7 @@ async def xkcdrand(interaction: discord.interactions.Interaction):
     )
     await interaction.response.send_message(embed=embed)
 
-
+# endregion
 
 @client.event
 async def on_message(message):
@@ -197,7 +204,7 @@ async def on_message(message):
         return
 
     if not message.author.bot:
-        if 'Ping' in message.content or 'ping' in message.content:
+        if 'Ping' in message.content or 'ping' in message.content.lower():
             await message.channel.send('Pong')
 
 
