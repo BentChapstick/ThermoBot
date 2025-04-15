@@ -4,9 +4,11 @@ import datetime
 import asyncio
 import zoneinfo
 
+
 #Referenced Files
 import foodBot
 import chartwells_queryFast
+import xkcd
 
 # Bot intents
 intents = discord.Intents.default()
@@ -20,6 +22,8 @@ quoteChannelID = 1280656734196596858
 organizeEventsChannelID = 772510418920144936 
 # organizeEventsChannelID = 1299157684162920479
 actionLogChannelID = 1305223850153480245
+
+SERVER = 1280656645231218793
 
 poll_question = "When and where are we doing family dinner?"
 poll_options = ["McNair", "Wads", "4:30", "5:00", "5:30", "6:00"]
@@ -137,6 +141,7 @@ async def on_ready():
     print(f'We have logged in as {client.user}')
     client.loop.create_task(schedule_daily_poll())  # Start the daily schedule task
     pullMenu.start()
+    await client.tree.sync(guild=discord.Object(id=SERVER))
 
 
 @client.command()
@@ -157,6 +162,39 @@ async def start_poll(ctx):
 @tasks.loop(time=datetime.time(hour=7, minute=5, tzinfo=zoneinfo.ZoneInfo("America/Detroit"))) #Refresh Menu at 7 am
 async def pullMenu():
     await chartwells_queryFast.main()
+@client.tree.command( #XKCD Get Current
+    name="xkcd-cur",
+    description="Current XKCD Comic",
+    guild=discord.Object(id=SERVER)
+)
+async def xkcdcur(interaction: discord.interactions.Interaction):
+    comic:dict = xkcd.latestxkcd()
+    embed = discord.Embed(
+        title=comic["title"],
+        color=discord.Color.random(),
+        description=comic["alt"],
+        timestamp=datetime.datetime(year=int(comic["year"]),month=int(comic["month"]),day=int(comic["day"]))
+    ).set_image(
+        url=comic["img"]
+    )
+    await interaction.response.send_message(embed=embed)
+
+@client.tree.command( #XKCD Get Random
+    name="xkcd-rand",
+    description="Random XKCD Comic",
+    guild=discord.Object(id=SERVER)
+)
+async def xkcdrand(interaction: discord.interactions.Interaction):
+    comic:dict = xkcd.randomXKCD()
+    embed = discord.Embed(
+        title=comic["title"],
+        color=discord.Color.random(),
+        description=comic["alt"],
+        timestamp=datetime.datetime(year=int(comic["year"]),month=int(comic["month"]),day=int(comic["day"]))
+    ).set_image(
+        url=comic["img"]
+    )
+    await interaction.response.send_message(embed=embed)
 
 # endregion
 
