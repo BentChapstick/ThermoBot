@@ -5,6 +5,8 @@ import asyncio
 import foodBot
 from chartwells_query import main
 
+import xkcd
+
 
 # Bot intents
 intents = discord.Intents.default()
@@ -18,6 +20,8 @@ quoteChannelID = 1280656734196596858
 organizeEventsChannelID = 772510418920144936 
 # organizeEventsChannelID = 1299157684162920479
 actionLogChannelID = 1305223850153480245
+
+SERVER = 1280656645231218793
 
 poll_question = "When and where are we doing family dinner?"
 poll_options = ["McNair", "Wads", "4:30", "5:00", "5:30", "6:00"]
@@ -134,6 +138,7 @@ async def dinnerOptions(channel):
 async def on_ready():
     print(f'We have logged in as {client.user}')
     client.loop.create_task(schedule_daily_poll())  # Start the daily schedule task
+    await client.tree.sync(guild=discord.Object(id=SERVER))
 
 
 @client.command()
@@ -149,6 +154,40 @@ async def start_poll(ctx):
 async def pullMenu(ctx):
     print("Getting new menu")
     client.loop.create_task(update_menu())
+
+@client.tree.command( #XKCD Get Current
+    name="xkcd-cur",
+    description="Current XKCD Comic",
+    guild=discord.Object(id=SERVER)
+)
+async def xkcdcur(interaction: discord.interactions.Interaction):
+    comic:dict = xkcd.latestxkcd()
+    embed = discord.Embed(
+        title=comic["title"],
+        color=discord.Color.random(),
+        description=comic["alt"],
+        timestamp=datetime.datetime(year=int(comic["year"]),month=int(comic["month"]),day=int(comic["day"]))
+    ).set_image(
+        url=comic["img"]
+    )
+    await interaction.response.send_message(embed=embed)
+
+@client.tree.command( #XKCD Get Random
+    name="xkcd-rand",
+    description="Random XKCD Comic",
+    guild=discord.Object(id=SERVER)
+)
+async def xkcdrand(interaction: discord.interactions.Interaction):
+    comic:dict = xkcd.randomXKCD()
+    embed = discord.Embed(
+        title=comic["title"],
+        color=discord.Color.random(),
+        description=comic["alt"],
+        timestamp=datetime.datetime(year=int(comic["year"]),month=int(comic["month"]),day=int(comic["day"]))
+    ).set_image(
+        url=comic["img"]
+    )
+    await interaction.response.send_message(embed=embed)
 
 
 
