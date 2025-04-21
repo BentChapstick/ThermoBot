@@ -19,7 +19,8 @@ client = commands.Bot(command_prefix='!', intents=intents)
 # Channel IDs
 debugChannelID = 1280991837913481278
 quoteChannelID = 1280656734196596858
-organizeEventsChannelID = 772510418920144936 
+organizeEventsChannelID = 772510418920144936
+FOODCHANNEL = 1358906415426830387
 # organizeEventsChannelID = 1299157684162920479
 actionLogChannelID = 1305223850153480245
 
@@ -31,7 +32,7 @@ poll_options = ["McNair", "Wads", "4:30", "5:00", "5:30", "6:00"]
 
 async def schedule_daily_poll():
     await client.wait_until_ready()
-    channel = client.get_channel(organizeEventsChannelID)
+    channel = client.get_channel(FOODCHANNEL)
     while not client.is_closed():
         try:
             now = datetime.datetime.now()
@@ -77,7 +78,7 @@ async def end_dinner_poll(channel, message):
     # Determine poll results
     results = message.reactions
     max_votes = 0
-    time_winner = null
+    time_winner = None
     if results[0].count > results[1].count:
         channel.send("Magnificent McNasty meal")
     else:
@@ -147,16 +148,10 @@ async def on_ready():
 @client.command()
 async def start_poll(ctx):
     # Manually start the daily poll
-    channel = client.get_channel(organizeEventsChannelID)
+    channel = client.get_channel(FOODCHANNEL)
     await dinnerOptions(channel)
 
     await run_dinner_poll(channel)    
-
-# #Pull and populate the Database with food options.
-# @client.command()
-# async def pullMenu(ctx):
-#     print("Getting new menu")
-#     client.loop.create_task(update_menu())
 
 # region AutoLooped Tasks
 @tasks.loop(time=datetime.time(hour=7, minute=5, tzinfo=zoneinfo.ZoneInfo("America/Detroit"))) #Refresh Menu at 7 am
@@ -167,6 +162,10 @@ async def pullMenu():
     description="Current XKCD Comic",
     guild=discord.Object(id=SERVER)
 )
+
+# end region
+
+# region Slash Commands
 async def xkcdcur(interaction: discord.interactions.Interaction):
     comic:dict = xkcd.latestxkcd()
     embed = discord.Embed(
@@ -195,6 +194,16 @@ async def xkcdrand(interaction: discord.interactions.Interaction):
         url=comic["img"]
     )
     await interaction.response.send_message(embed=embed)
+
+#Pull and populate the Database with food options.
+@client.tree.command(
+    name="update-menu",
+    description="Updates the Menu Database",
+    guild=discord.Object(id=SERVER)
+)
+async def pullMenu(interaction: discord.interactions.Interaction):
+    print("Getting new menu")
+    await chartwells_queryFast.main()
 
 # endregion
 
