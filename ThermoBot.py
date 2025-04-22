@@ -30,6 +30,7 @@ poll_question = "When and where are we doing family dinner?"
 poll_options = ["McNair", "Wads", "4:30", "5:00", "5:30", "6:00"]
 
 
+# deprecated
 async def schedule_daily_poll():
     await client.wait_until_ready()
     channel = client.get_channel(FOODCHANNEL)
@@ -131,8 +132,9 @@ async def dinnerOptions(channel):
 @client.event
 async def on_ready():
     print(f'We have logged in as {client.user}')
-    client.loop.create_task(schedule_daily_poll())  # Start the daily schedule task
+    # client.loop.create_task(schedule_daily_poll())  # Start the daily schedule task
     pullMenuTask.start()
+    daily_poll_task.start()
     await client.tree.sync(guild=discord.Object(id=SERVER))
 
 
@@ -149,7 +151,14 @@ async def start_poll(ctx):
 async def pullMenuTask():
     await chartwells_queryFast.main()
     
+@tasks.loop(time=datetime.time(hour=9, minute=0, tzinfo=zoneinfo.ZoneInfo("America/Detroit")))
+async def daily_poll_task():
+    channel = client.get_channel(FOODCHANNEL)
+    # print dinner options
+    await dinnerOptions(channel)
 
+    # Run the poll
+    await run_dinner_poll(channel)
 # end region
 
 # region Slash Commands
