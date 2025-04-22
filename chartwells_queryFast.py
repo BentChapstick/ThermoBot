@@ -13,7 +13,7 @@ import termcolor as tc
 if os.getenv("RUNNING_IN_DOCKER") == "true":
     DATABASE = "/app/Database/dish.db"
 else:
-    DATABASE = "Database/dish.db"
+    DATABASE = os.path.join("Database", "dish.db")
 
 # API URLs
 PERIOD_TARGET = "https://api.dineoncampus.com/v1/location/{location}/periods?platform=0&date={date}"
@@ -45,39 +45,29 @@ async def main() -> None:
                 locList.append(row[1])
                 lookupDict[str(row[1])] = row[0] 
                 
-            print(tc.colored("Access Done",color="green", on_color="on_light_grey"))
-    except sqlite3.OperationalError as e:
-        print("Failed to open Database: ", e)
-    # print(lookupDict)
-    for i in locList:
-        scrape_targets.append(scrape_period(TODAY, i)) # assemble list of coroutines
-    group = await asyncio.gather(*scrape_targets) # process coroutines
-    try:
-        with sqlite3.connect(DATABASE) as conn:
-            print(tc.colored(f"Opened SQLite database with version {sqlite3.sqlite_version} successfully." , color="green", on_color="on_light_grey"))
-            cur = conn.cursor()
+            print(tc.colored("Locations fetched",color="green", on_color="on_light_grey"))
+
+            for i in locList:
+                scrape_targets.append(scrape_period(TODAY, i)) # assemble list of coroutines
+            group = await asyncio.gather(*scrape_targets) # process coroutines
+
             for idx, loc in enumerate(group):
                 for per in loc:
                     cur.execute("REPLACE INTO time(mealTime, apiUUID) VALUES(?,?)", tuple((per["name"], per["id"])))
                     meal_targets.append(scrape_meals(per, TODAY, locList[idx])) # assembly list of coroutines
             conn.commit()
-            print(tc.colored("Access Done",color="green", on_color="on_light_grey"))
-    except sqlite3.OperationalError as e:
-        print("Failed to open Database: ", e)
-    group = await asyncio.gather(*meal_targets) # process coroutines
+            print(tc.colored("Group data appended",color="green", on_color="on_light_grey"))
 
+            
+            group = await asyncio.gather(*meal_targets) # process coroutines
 
-    try:
-        with sqlite3.connect(DATABASE) as conn:
-            print(tc.colored(f"Opened SQLite database with version {sqlite3.sqlite_version} successfully." , color="green", on_color="on_light_grey"))
-            cur = conn.cursor()
             for i in group:
                 process_meal_data(i[1],i[2], TODAY, lookupDict[i[0]], conn)
             conn.commit()
-            print(tc.colored("Access Done",color="green", on_color="on_light_grey"))
+            print(tc.colored("Meal data added",color="green", on_color="on_light_grey"))
     except sqlite3.OperationalError as e:
         print("Failed to open Database: ", e)
-    return
+    # print(lookupDict)
 
 async def scrape_period(date_time: str, uuid: str) -> dict:
     TARGET = PERIOD_TARGET.format(date=date_time, location=uuid)

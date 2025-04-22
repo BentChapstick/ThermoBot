@@ -1,13 +1,18 @@
 # Script that will get the dinner options for MTU Dinning
 
-from asyncio.windows_events import NULL
+import os
 from inspect import _empty
 import sqlite3
 from datetime import date
+from enum import Enum
+
+class Hall(Enum):
+    DHH = ('DHH', ["Homestyle", "Flame", "Chef Francisco Soups"])
+    Wads = ('Wadsworth', ["Homestyle", "Flame", "Delicious Without"])
+    McNair = ('McNair', ["Flame", "The Kitchen", "Chef Francisco Soups"])
 
 
-databasePath = "A:\\Website\\DISH-API\\Database\\dish.db"
-
+databasePath = os.path.join("Database", "dish.db")
 
 # Run query to the database
 def query(query):
@@ -43,15 +48,16 @@ def currentDate():
 
 # Wadsworth
 
-def Wadsworth(time):
+def hallMeal(time, hall: Hall):
 
-    locations = ["Homestyle", "Flame", "Delicious Without"]
+    menu = {}
 
-    menu = []
+    locations = hall.value[1]
+    name = hall.value[0]
 
     for loc in locations:
         
-        data = query(f"SELECT name, description FROM menuItems WHERE location = 'Wadsworth' AND station = '{loc}' AND description is not NULL and date = '{currentDate()}' and time = '{time}'")
+        data = query(f"SELECT name, description FROM menuItems WHERE location = '{name}' AND station = '{loc}' AND description is not NULL and date = '{currentDate()}' and time = '{time}'")
                       #SELECT name, description FROM menuItems WHERE location = 'Wadsworth' AND station = 'Homestyle' AND description is not NULL and date = '2025-03-28' and time = 'Lunch'
         try:
             dishes = []
@@ -62,74 +68,17 @@ def Wadsworth(time):
         except:
             dishes.append(f"No dishes at {loc}")
 
-        menu.append(dishes)
+        menu[loc] = dishes
 
             
     
     return menu
 
-def DHH(time):
-
-
-    locations = ["Homestyle", "Flame", "Chef Francisco Soups"]
-
-    menu = []
-
-    for loc in locations:
-        
-        data = query(f"SELECT name, description FROM menuItems WHERE location = 'DHH' AND station = '{loc}' AND description is not NULL and date = '{currentDate()}' and time = '{time}'")
-
-        # If DHH is not serving a meal
-        if len(data) is 0:
-            temp = [None]
-            menu.append(temp)
-        
-        else:
-
-            try:
-                dishes = []
-                for item in data:
-
-                    dishes.append(f"{item[0]}")
-                
-            except:
-                dishes.append(f"No dishes at {loc}")
-
-            menu.append(dishes)
-
-    return menu
-
-def McNair(time):
-
-    locations = [ "Flame", "The Kitchen", "Chef Francisco Soups"]
-
-    menu = []
-
-    for loc in locations:
-        
-        data = query(f"SELECT name, description FROM menuItems WHERE location = 'McNair' AND station = '{loc}' AND description is not NULL and date = '{currentDate()}' and time = '{time}'")
-
-        try:
-            dishes = []
-
-            for item in data:
-
-                if item is None:
-                    dishes.append("None")
-                    break
-
-                dishes.append(f"{item[0]}")
-            
-        except:
-            dishes.append(f"No dishes at {loc}")
-
-        menu.append(dishes)
-
-    return menu
-
-def getMeals(meal):
+def getMeals(mealTime):
+    menu = {}
     
-    menu =  [ Wadsworth(meal) , DHH(meal) , McNair(meal) ]
+    for location in Hall:
+        menu[location.value[0]] = hallMeal(mealTime, location)
 
     return menu
 
@@ -141,8 +90,5 @@ def getDescription(item):
 
 if __name__ == '__main__':
     meal = "Lunch"
-    #Wadsworth(meal)
-    print(Wadsworth(meal))
-    print(DHH(meal))
-    print(McNair(meal))
-
+    meals = getMeals(meal)
+    print(meals)

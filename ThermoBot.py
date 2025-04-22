@@ -96,43 +96,34 @@ async def dinnerOptions(channel):
 
     text = ""
 
-    locations = ["Wadsworth", "DHH", "McNair"]
+    text += f"# Today's Options\n"
+    for food_hall in foodBot.Hall:
+        hall_name = food_hall.value[0]
+        locations = food_hall.value[1]
 
-    text += f"# Todays Options\n"
+        text += f"## {hall_name}\n"
+        # total food options for the hall (out of all sub-locations)
+        total_options_count = 0
+        for location in locations:
+            location_text = ""
+            # count of options at the specific sub-location
+            location_options_count = 0
+            location_text += f"### {location}\n"
+            menu_items = menu[hall_name][location]
+            for food_option in menu_items:
+                location_options_count += 1
+                location_text += ("- " + food_option + '\n')
 
-    text += f"## Wads\n"
+            # if this sub-location has any food options, print the
+            # location and its options
+            if location_options_count > 0:
+                total_options_count += location_options_count
+                text += location_text
 
-    locations = ["Homestyle", "Flame", "Delicious Without"]
-    for x in range( 0 ,3):
-        text += f"### {locations[x]}\n"
-
-        for item in menu[0][x]:
-            text += ("- " + item + '\n')
-
-    text += f"### DHH\n"
-
-    if( menu[1][0][0] is not None ):
-
-        locations = ["Homestyle", "Flame", "Chef Francisco Soups"]
-        for x in range( 0 ,3):
-            text += f"### {locations[x]}\n"
-
-            for item in menu[1][x]:
-                text += ("- " + item + '\n')
-
-    else:
-        text += "- Closed\n"
-
-    
-    text += f"## McNair\n"
-
-    locations = ["Flame", "The Kitchen", "Chef Francisco Soups"]
-    for x in range( 0 ,3):
-        text += f"### {locations[x]}\n"
-
-        for item in menu[2][x]:
-            text += ("- " + item + '\n')
-
+        # if the hall had no food options for any of its sub-locations,
+        # print is a closed
+        if total_options_count <= 0:
+            text += "- Closed\n"
 
     await channel.send(text)
 
@@ -141,7 +132,7 @@ async def dinnerOptions(channel):
 async def on_ready():
     print(f'We have logged in as {client.user}')
     client.loop.create_task(schedule_daily_poll())  # Start the daily schedule task
-    pullMenu.start()
+    pullMenuTask.start()
     await client.tree.sync(guild=discord.Object(id=SERVER))
 
 
@@ -155,17 +146,19 @@ async def start_poll(ctx):
 
 # region AutoLooped Tasks
 @tasks.loop(time=datetime.time(hour=7, minute=5, tzinfo=zoneinfo.ZoneInfo("America/Detroit"))) #Refresh Menu at 7 am
-async def pullMenu():
+async def pullMenuTask():
     await chartwells_queryFast.main()
+    
+
+# end region
+
+# region Slash Commands
+
 @client.tree.command( #XKCD Get Current
     name="xkcd-cur",
     description="Current XKCD Comic",
     guild=discord.Object(id=SERVER)
 )
-
-# end region
-
-# region Slash Commands
 async def xkcdcur(interaction: discord.interactions.Interaction):
     comic:dict = xkcd.latestxkcd()
     embed = discord.Embed(
