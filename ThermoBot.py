@@ -20,8 +20,8 @@ client = commands.Bot(command_prefix='!', intents=intents)
 debugChannelID = 1280991837913481278
 quoteChannelID = 1280656734196596858
 organizeEventsChannelID = 772510418920144936
-FOODCHANNEL = 1358906415426830387
-# organizeEventsChannelID = 1299157684162920479
+FOODCHANNEL = 1358906415426830387 #DumpsterFire
+#FOODCHANNEL = 772506838322118669 #Test Server
 actionLogChannelID = 1305223850153480245
 
 SERVER = 1280656645231218793
@@ -46,7 +46,7 @@ async def schedule_daily_poll():
             await asyncio.sleep(delay)
 
             # Get dinner options
-            await dinnerOptions(channel)
+            await dinnerOptions(channel, "Dinner")
 
             # Run the poll
             await run_dinner_poll(channel)
@@ -92,8 +92,8 @@ async def end_dinner_poll(channel, message):
     await message.delete()  # Delete the poll message
 
 # Read database and send the dinner options
-async def dinnerOptions(channel):
-    menu = foodBot.getMeals("Dinner")
+async def dinnerOptions(channel, meal ):
+    menu = foodBot.getMeals(f"{meal}")
 
     text = ""
 
@@ -142,7 +142,7 @@ async def on_ready():
 async def start_poll(ctx):
     # Manually start the daily poll
     channel = client.get_channel(FOODCHANNEL)
-    await dinnerOptions(channel)
+    await dinnerOptions(channel, "Dinner")
 
     await run_dinner_poll(channel)    
 
@@ -208,6 +208,23 @@ async def pullMenu(interaction: discord.interactions.Interaction):
     await chartwells_queryFast.main()
 
 # endregion
+
+@client.command()
+async def lunchMenu(ctx):
+    await dinnerOptions( ctx.channel , "Lunch" )
+
+@client.command()
+async def dinnerMenu(ctx):
+    await dinnerOptions( ctx.channel, "Dinner")
+
+@client.command()
+async def updateMenu(ctx):
+
+    await ctx.channel.send("Pulling Menu")
+
+    await chartwells_queryFast.main()
+
+    await ctx.channel.send("Done")
 
 @client.event
 async def on_message(message):
