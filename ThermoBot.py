@@ -231,11 +231,16 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+    # Any message that was not sent by the bot
     if not message.author.bot:
         if 'Ping' in message.content or 'ping' in message.content.lower():
             await message.channel.send('Pong')
 
+        if 'Pong' in message.content or 'pong' in message.content.lower():
+            await message.channel.send('ping')
 
+
+    # Verify messages sent in the quotes channel contain quotes. 
     if message.channel.id == quoteChannelID and not message.author.bot:
         await actionLogMessage(f"Checking message by {message.author}: {message.content}")
         # Check if the message does not contain either quote

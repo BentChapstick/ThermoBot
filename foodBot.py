@@ -8,7 +8,7 @@ from enum import Enum
 
 class Hall(Enum):
     DHH = ('DHH', ["Homestyle", "Flame", "Chef Francisco Soups"])
-    Wads = ('Wadsworth', ["The Diner", "Taste of Home", "Rooted","Delicious Without"])
+    Wads = ('Wadsworth', ["The Diner", "Taste of Home", "Rooted", "Delicious Without"])
     McNair = ('McNair', ["Flame", "The Kitchen", "Chef Francisco Soups"])
 
 
