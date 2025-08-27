@@ -35,6 +35,11 @@ def main():
     db_connection = sqlite3.connect(database_path)
     db_cursor = db_connection.cursor()
 
+    # Delete the future meals to ensure they are up to date. 
+    for date in dates:
+        print(f"DELETE FROM menuItems WHERE date = '{dates[date]}'")
+        db_cursor.execute(f"DELETE FROM menuItems WHERE date = '{dates[date]}'")
+
     # Get locations from database
     db_cursor.execute("SELECT * FROM locations")
     rows = db_cursor.fetchall()
