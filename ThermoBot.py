@@ -27,7 +27,7 @@ actionLogChannelID = 1305223850153480245
 SERVER = 1280656645231218793
 
 poll_question = "When and where are we doing family dinner?"
-poll_options = ["McNair", "Wads", "4:30", "5:00", "5:30", "6:00"]
+poll_options = ["McNair", "Wads", "DHH", "4:30", "5:00", "5:30", "6:00"]
 
 
 # deprecated
@@ -66,7 +66,7 @@ async def run_dinner_poll(channel):
         message = await channel.send(poll_message)
 
         # Add Unicode reactions for the options
-        unicode_numbers = ['🇲', '🇼', '🕟', '🕔', '🕠', '🕕']
+        unicode_numbers = ['🇲', '🇼', '🇩', '🕟', '🕔', '🕠', '🕕']
         for index in range(len(poll_options)):
             await message.add_reaction(unicode_numbers[index])
 
@@ -80,11 +80,19 @@ async def end_dinner_poll(channel, message):
     results = message.reactions
     max_votes = 0
     time_winner = None
-    if results[0].count > results[1].count:
+    location_winner = 0
+    for i in range(1,3):
+        if results[i].count > results[location_winner].count:
+           location_winner = i 
+    
+    if location_winner = 0:
         channel.send("Magnificent McNasty meal")
-    else:
+    elif location_winner = 1:
         channel.send("Wonderful Wads wins")
-    for i in range(2, 6):
+    else:
+        channel.send("Dastardly DHH dinning")
+    
+    for i in range(3, 7):
         if results[i].count > max_votes:
             max_votes = results[i]
             time_winner = results[i]
