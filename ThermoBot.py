@@ -27,7 +27,8 @@ actionLogChannelID = 1305223850153480245
 SERVER = 1280656645231218793
 
 poll_question = "When and where are we doing family dinner?"
-poll_options = ["McNair", "Wads", "4:30", "5:00", "5:30", "6:00"]
+poll_options = ["McNair", "Wadsworth", "DHH", "4:30", "5:00", "5:30", "6:00"]
+dining_hall_is_open = {"McNair" : True, "Wadsworth" : True, "DHH" : True}
 
 
 # deprecated
@@ -66,9 +67,10 @@ async def run_dinner_poll(channel):
         message = await channel.send(poll_message)
 
         # Add Unicode reactions for the options
-        unicode_numbers = ['🇲', '🇼', '🕟', '🕔', '🕠', '🕕']
+        unicode_numbers = ['🇲', '🇼', '🇩', '🕟', '🕔', '🕠', '🕕']
         for index in range(len(poll_options)):
-            await message.add_reaction(unicode_numbers[index])
+            if (index > 2 or dining_hall_is_open[poll_options[index]]):
+                await message.add_reaction(unicode_numbers[index])
 
         # Wait for 7 hours before closing the poll (end at 4pm)
         await asyncio.sleep(25200)  # 7 hours in seconds
@@ -80,11 +82,19 @@ async def end_dinner_poll(channel, message):
     results = message.reactions
     max_votes = 0
     time_winner = None
-    if results[0].count > results[1].count:
+    location_winner = 0
+    for i in range(1,3):
+        if results[i].count > results[location_winner].count:
+           location_winner = i 
+    
+    if location_winner == 0:
         channel.send("Magnificent McNasty meal")
-    else:
+    elif location_winner == 1:
         channel.send("Wonderful Wads wins")
-    for i in range(2, 6):
+    else:
+        channel.send("Dastardly DHH dinning")
+    
+    for i in range(3, 7):
         if results[i].count > max_votes:
             max_votes = results[i]
             time_winner = results[i]
@@ -125,6 +135,9 @@ async def dinnerOptions(channel, meal ):
         # print is a closed
         if total_options_count <= 0:
             text += "- Closed\n"
+            dining_hall_is_open[hall_name] = False
+        else:
+            dining_hall_is_open[hall_name] = True
 
     await channel.send(text)
 
@@ -136,15 +149,6 @@ async def on_ready():
     pullMenuTask.start()
     daily_poll_task.start()
     await client.tree.sync(guild=discord.Object(id=SERVER))
-
-
-@client.command()
-async def start_poll(ctx):
-    # Manually start the daily poll
-    channel = client.get_channel(FOODCHANNEL)
-    await dinnerOptions(channel, "Dinner")
-
-    await run_dinner_poll(channel)    
 
 # region AutoLooped Tasks
 @tasks.loop(time=datetime.time(hour=7, minute=5, tzinfo=zoneinfo.ZoneInfo("America/Detroit"))) #Refresh Menu at 7 am
@@ -206,6 +210,19 @@ async def xkcdrand(interaction: discord.interactions.Interaction):
 async def pullMenu(interaction: discord.interactions.Interaction):
     print("Getting new menu")
     await chartwells_queryFast.main()
+    await interaction.response.send_message("Updated")
+
+@client.tree.command( #Manually start dinner poll
+    name="start-poll",
+    description="Starts a dinner poll in the food channel",
+    guild=discord.Object(id=SERVER)
+)
+async def start_poll(interaction: discord.interactions.Interaction):
+    # Manually start the daily poll
+    channel = client.get_channel(FOODCHANNEL)
+    await dinnerOptions(channel, "Dinner")
+
+    await run_dinner_poll(channel)    
 
 # endregion
 
