@@ -263,17 +263,6 @@ async def actionLogMessage(message):
     channel = client.get_channel(actionLogChannelID)
     await channel.send(message)
 
-try:
-    with open("Token", 'r') as file:
-        TOKEN = file.read()
-except FileNotFoundError:
-    print("Token file not found. Please ensure the 'Token' file exists.")
-    exit(1)
-except Exception as e:
-    print(f"An error occurred: {e}")
-    exit(1)
-
-
 async def load_extensions():
     """Load all modules/extensions/cogs from specificed directories"""
     dir_list = ['modules']
