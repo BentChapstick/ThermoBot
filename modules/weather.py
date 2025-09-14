@@ -34,12 +34,13 @@ class weatherCog(commands.Cog):
 
     @app_commands.command(name="weather", description="Lookup Weather in target city")
     async def weather(self, interaction: discord.Interaction, city: str, state: str):
+        await interaction.response.send_message("Processing...")
+        
         target = await self.geoCode(city, state)
         embed, file = await self.getWeather(float(target['lat']), float(target['lon']))
 
-        await interaction.response.send_message("Check DMs")
-        author = await self.bot.fetch_user(interaction.user.id)
-        await author.send(embed=embed, file=file)
+        author = await interaction.edit_original_response(embed=embed, file=file)
+        # await author.send(embed=embed, file=file)
 
     #Run Refresh
     @app_commands.command(name="start_weather", description="Why isn't this task starting?")
@@ -90,18 +91,18 @@ class weatherCog(commands.Cog):
     @tasks.loop(time=[datetime.time(hour=11)]) 
     async def morningWeather(self): #Morning Weather
 
-        #Cormac
+        #Thermo
 
         try:
             target = await self.geoCode("Houghton", "Mi")
             embed, file = await self.getWeather(float(target['lat']), float(target['lon']))
-            author = await self.bot.fetch_user(339471265427619840)
+            author = await self.bot.fetch_channel(1280656645688524821)
             await author.send(embed=embed, file=file)
         except Exception as e:
-            logging.error("Failed to send weather information to Cormac")
+            logging.error("Failed to send weather information to Thermo General")
             logging.critical(e)
         else:
-            print(f'Weather sent to Cormac at {datetime.datetime.now().strftime("%X")}')
+            print(f'Weather sent to Thermo at {datetime.datetime.now().strftime("%X")}')
 
 
 async def setup(bot: commands.Bot):
