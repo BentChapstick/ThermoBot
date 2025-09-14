@@ -295,3 +295,37 @@ except Exception as e:
     print(f"An error occurred: {e}")
 
 
+async def load_extensions():
+    """Load all modules/extensions/cogs from specificed directories"""
+    dir_list = ['modules']
+    exclusion_list = ['help']
+    for dir_ in dir_list:
+        print(f'=== Attempting to load all extensions in {dir_} directory ...')
+        for filename in os.listdir(f'./{dir_}'):
+            module = filename[:-3]
+            if filename.endswith('.py') and module not in exclusion_list:
+                try:
+                    await client.load_extension(f'{dir_}.{module}')
+                    print(f'\tSuccessfully loaded extension: {module}')
+                except Exception as err:
+                    exc = f'{type(err).__name__}: {err}'
+                    print(f'\tFailed to load extension:  {module}\n\t\t{exc}')
+    for excl_module in exclusion_list:
+        print(f'=== Excluding the extension: {excl_module}')
+
+
+def log_in():
+    """Login function"""
+    print('=== Initializing startup sequence ...')
+    asyncio.run(load_extensions())
+    print('=== Attempting to log in to bot ...')
+    try:
+        client.run(TOKEN) #Keep at the end of the file
+    except discord.errors.HTTPException or discord.errors.LoginFailure as error:
+        print('\nDiscord: Unsuccessful login:', error)
+    else:
+        sys.exit("Login Unsuccessful")
+
+
+if __name__ == '__main__':
+    log_in()
