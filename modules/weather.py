@@ -96,7 +96,7 @@ class weatherCog(commands.Cog):
         try:
             target = await self.geoCode("Houghton", "Mi")
             embed, file = await self.getWeather(float(target['lat']), float(target['lon']))
-            author = await self.bot.fetch_channel(1280656645688524821)
+            author = await self.bot.fetch_channel(1281273813556006932) #Bot Spam
             await author.send(embed=embed, file=file)
         except Exception as e:
             logging.error("Failed to send weather information to Thermo General")
