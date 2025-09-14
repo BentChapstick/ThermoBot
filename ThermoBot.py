@@ -1,3 +1,6 @@
+import os
+import sys
+from dotenv import load_dotenv
 import discord
 from discord.ext import commands, tasks
 import datetime
@@ -8,7 +11,6 @@ import zoneinfo
 #Referenced Files
 import foodBot
 import chartwells_queryFast
-import xkcd
 
 # Bot intents
 intents = discord.Intents.default()
@@ -25,6 +27,30 @@ FOODCHANNEL = 1358906415426830387 #DumpsterFire
 actionLogChannelID = 1305223850153480245
 
 SERVER = 1280656645231218793
+FILEPATH = os.path.dirname(__file__)
+
+# region Instantiation
+if __name__ == "__main__":
+    load_dotenv()
+    TOKEN = os.getenv("DISCORD_TOKEN")
+    SERVER = os.getenv("SERVER")
+
+    intents = discord.Intents.default()
+    intents.message_content = True
+    intents.members = True
+    client = commands.Bot(command_prefix='$', intents=intents)
+
+@client.event
+async def on_ready():
+    print(f'We have logged in as {client.user}')
+    # client.loop.create_task(schedule_daily_poll())  # Start the daily schedule task
+    pullMenuTask.start()
+    daily_poll_task.start()
+    await client.tree.sync(guild=discord.Object(id=SERVER))
+
+    print("---Ready---")
+
+# endregion
 
 poll_question = "When and where are we doing family dinner?"
 poll_options = ["McNair", "Wadsworth", "DHH", "4:30", "5:00", "5:30", "6:00"]
@@ -142,14 +168,6 @@ async def dinnerOptions(channel, meal ):
     await channel.send(text)
 
 
-@client.event
-async def on_ready():
-    print(f'We have logged in as {client.user}')
-    # client.loop.create_task(schedule_daily_poll())  # Start the daily schedule task
-    pullMenuTask.start()
-    daily_poll_task.start()
-    await client.tree.sync(guild=discord.Object(id=SERVER))
-
 # region AutoLooped Tasks
 @tasks.loop(time=datetime.time(hour=7, minute=5, tzinfo=zoneinfo.ZoneInfo("America/Detroit"))) #Refresh Menu at 7 am
 async def pullMenuTask():
@@ -166,40 +184,6 @@ async def daily_poll_task():
 # end region
 
 # region Slash Commands
-
-@client.tree.command( #XKCD Get Current
-    name="xkcd-cur",
-    description="Current XKCD Comic",
-    guild=discord.Object(id=SERVER)
-)
-async def xkcdcur(interaction: discord.interactions.Interaction):
-    comic:dict = xkcd.latestxkcd()
-    embed = discord.Embed(
-        title=comic["title"],
-        color=discord.Color.random(),
-        description=comic["alt"],
-        timestamp=datetime.datetime(year=int(comic["year"]),month=int(comic["month"]),day=int(comic["day"]))
-    ).set_image(
-        url=comic["img"]
-    )
-    await interaction.response.send_message(embed=embed)
-
-@client.tree.command( #XKCD Get Random
-    name="xkcd-rand",
-    description="Random XKCD Comic",
-    guild=discord.Object(id=SERVER)
-)
-async def xkcdrand(interaction: discord.interactions.Interaction):
-    comic:dict = xkcd.randomXKCD()
-    embed = discord.Embed(
-        title=comic["title"],
-        color=discord.Color.random(),
-        description=comic["alt"],
-        timestamp=datetime.datetime(year=int(comic["year"]),month=int(comic["month"]),day=int(comic["day"]))
-    ).set_image(
-        url=comic["img"]
-    )
-    await interaction.response.send_message(embed=embed)
 
 #Pull and populate the Database with food options.
 @client.tree.command(
@@ -281,18 +265,13 @@ async def actionLogMessage(message):
 
 try:
     with open("Token", 'r') as file:
-        token = file.read()
+        TOKEN = file.read()
 except FileNotFoundError:
     print("Token file not found. Please ensure the 'Token' file exists.")
     exit(1)
 except Exception as e:
     print(f"An error occurred: {e}")
     exit(1)
-
-try:
-    client.run(token)
-except Exception as e:
-    print(f"An error occurred: {e}")
 
 
 async def load_extensions():
