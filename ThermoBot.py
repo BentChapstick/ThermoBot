@@ -38,7 +38,7 @@ if __name__ == "__main__":
     intents = discord.Intents.default()
     intents.message_content = True
     intents.members = True
-    client = commands.Bot(command_prefix='$', intents=intents)
+    client = commands.Bot(command_prefix='!', intents=intents)
 
 @client.event
 async def on_ready():
