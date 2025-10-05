@@ -2,3 +2,4 @@ discord.py
 cloudscraper
 fake-useragent
 termcolor
+python-dotenv
