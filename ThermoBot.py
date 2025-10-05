@@ -159,7 +159,7 @@ async def pullMenuTask():
 async def daily_poll_task():
     channel = client.get_channel(FOODCHANNEL)
     # print dinner options
-    await dinnerOptions(channel)
+    await dinnerOptions(channel,"Dinner")
 
     # Run the poll
     await run_dinner_poll(channel)
