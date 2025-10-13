@@ -18,6 +18,10 @@ class weatherCog(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.Bot = bot
 
+    @commands.Cog.listener()
+    async def on_ready(self):
+        self.morningWeather.start()
+
     @app_commands.command(name="testweather", description="Test Weather Api")
     async def weathertest(self, interaction: discord.Interaction):
         try:
@@ -39,14 +43,22 @@ class weatherCog(commands.Cog):
         target = await self.geoCode(city, state)
         embed, file = await self.getWeather(float(target['lat']), float(target['lon']))
 
-        author = await interaction.edit_original_response(embed=embed, file=file)
+        target_channel = self.bot.get_channel(interaction.channel_id)
+        await target_channel.send(embed=embed, file=file)
         # await author.send(embed=embed, file=file)
 
+    @app_commands.command(name="aurora_forecast", description="3 Hours Aurora Prediction")
+    async def aurora_forecast(self, interaction: discord.Interaction):
+        await interaction.response.send_message("Pulling...", delete_after=60)
+        embed, file = await self.get3hour()
+        target_channel = self.bot.get_channel(interaction.channel_id)
+        await target_channel.send(embed=embed, file=file)
+
     #Run Refresh
-    @app_commands.command(name="start_weather", description="Why isn't this task starting?")
-    async def start_weather(self, interaction: discord.interactions.Interaction):
-        await interaction.response.send_message("Attempting to start morning weather...", delete_after=30)
-        self.morningWeather.start()
+    # @app_commands.command(name="start_weather", description="Why isn't this task starting?")
+    # async def start_weather(self, interaction: discord.interactions.Interaction):
+    #     await interaction.response.send_message("Attempting to start morning weather...", delete_after=30)
+    #     self.morningWeather.start()
 
     async def geoCode(self, city: str, state: str) -> dict:
         r = requests.get(f'https://nominatim.openstreetmap.org/search?q={city},{state},USA&format=json', headers=HEADER)
@@ -86,6 +98,27 @@ class weatherCog(commands.Cog):
             inline=False
         )
         return embed, radarForecast
+    
+    async def get3hour(self): #Aurora Forecast
+        FILE = f'geospace_3_hour.png'
+        fileRequest = requests.get(f'https://services.swpc.noaa.gov/images/geospace/{FILE}', stream=True)
+        
+        with open(f'./ImageCache/{FILE}', "wb") as f:
+            shutil.copyfileobj(fileRequest.raw, f)
+
+        futureForecast = discord.File(f'./ImageCache/{FILE}')
+
+        embed = discord.Embed(
+            title=f'NOAA 3 Hour Aurora Forecast',
+            color=discord.Color.random(),
+            timestamp=datetime.datetime.now()
+        )
+
+        embed.set_image(
+            url=f'attachment://{FILE}'
+        )
+
+        return embed, futureForecast
     
     # @tasks.loop(hours=1)
     @tasks.loop(time=[datetime.time(hour=11)]) 

@@ -46,7 +46,7 @@ async def on_ready():
     # client.loop.create_task(schedule_daily_poll())  # Start the daily schedule task
     pullMenuTask.start()
     daily_poll_task.start()
-    await client.tree.sync(guild=discord.Object(id=SERVER))
+    await client.tree.sync()
 
     print("---Ready---")
 
