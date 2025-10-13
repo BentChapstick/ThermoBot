@@ -157,11 +157,11 @@ class weatherCog(commands.Cog):
         obTime = datetime.datetime.strptime(data["Observation Time"], TIMEFORMAT)
         forcastTime = datetime.datetime.strptime(data["Forecast Time"], TIMEFORMAT)
 
-        target = self.geoCode("Houghton", "Mi")
-        print(target)
+        target = await self.geoCode("Houghton", "Mi")
+        # print(target)
         # print(type(target["lat"]))
         # print(obTime)
-        print(forcastTime.astimezone(local))
+        # print(forcastTime.astimezone(local))
         best: list
         for forcast in data["coordinates"]: #[Longitude, Latitude, Aurora]
             if target["lon"] < 0:
@@ -173,7 +173,7 @@ class weatherCog(commands.Cog):
 
             if forcast[0] == lon and forcast[1] == lat:
                 best = forcast
-        if best > self.threshold and (self.lastaurorapub + datetime.timedelta(days=1)) < datetime.datetime.now():
+        if best[-1] > self.threshold and (self.lastaurorapub + datetime.timedelta(days=1)) < datetime.datetime.now():
             self.lastaurorapub = datetime.datetime.now()
             target_channel = self.bot.get_channel(self.announcements_channel)
 

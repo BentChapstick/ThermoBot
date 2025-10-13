@@ -1,5 +1,7 @@
 discord.py
 cloudscraper
+configparser
 fake-useragent
 termcolor
 python-dotenv
+python-dateutil
