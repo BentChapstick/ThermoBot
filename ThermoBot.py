@@ -18,15 +18,6 @@ intents.messages = True
 intents.message_content = True
 client = commands.Bot(command_prefix='!', intents=intents)
 
-# Channel IDs
-debugChannelID = 1280991837913481278
-quoteChannelID = 1280656734196596858
-organizeEventsChannelID = 772510418920144936
-FOODCHANNEL = 1358906415426830387 #DumpsterFire
-#FOODCHANNEL = 772506838322118669 #Test Server
-actionLogChannelID = 1305223850153480245
-
-SERVER = 1280656645231218793
 FILEPATH = os.path.dirname(__file__)
 
 # region Instantiation
@@ -229,39 +220,10 @@ async def updateMenu(ctx):
 
 @client.event
 async def on_message(message):
-    if message.author == client.user:
-        return
-
-    # Any message that was not sent by the bot
-    if not message.author.bot:
-        if 'Ping' in message.content or 'ping' in message.content.lower():
-            await message.channel.send('Pong')
-
-        if 'Pong' in message.content or 'pong' in message.content.lower():
-            await message.channel.send('ping')
+    
 
 
-    # Verify messages sent in the quotes channel contain quotes. 
-    if message.channel.id == quoteChannelID and not message.author.bot:
-        await actionLogMessage(f"Checking message by {message.author}: {message.content}")
-        # Check if the message does not contain either quote
-        if '"' not in message.content and "'" not in message.content\
-                and '“' not in message.content:
-            await actionLogMessage("Deleting message: No quotes found")
-            try:
-                await message.delete()
-            except discord.Forbidden:
-                await actionLogMessage("Missing permissions to delete messages.")
-            except discord.HTTPException:
-                await actionLogMessage("Failed to delete the message.")
-        else:
-            await actionLogMessage("Message retained: Quotes found")  # Debugging output
-
-    await client.process_commands(message)
-
-async def actionLogMessage(message):
-    channel = client.get_channel(actionLogChannelID)
-    await channel.send(message)
+    
 
 async def load_extensions():
     """Load all modules/extensions/cogs from specificed directories"""
