@@ -22,6 +22,9 @@ HEADER = {
 class weatherCog(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.Bot = bot
+        self.threshold = int(config.get("General","auroraThresh"))
+        self.announcements_channel = config.get("General","announcements")
+        self.lastaurorapub: datetime.datetime = datetime.datetime.min
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -135,6 +138,27 @@ class weatherCog(commands.Cog):
 
         embed = discord.Embed(
             title=f'NOAA 3 Hour Aurora Forecast',
+            color=discord.Color.random(),
+            timestamp=datetime.datetime.now()
+        )
+
+        embed.set_image(
+            url=f'attachment://{FILE}'
+        )
+
+        return embed, futureForecast
+    
+    async def getAuroraHalfHour(self):
+        FILE = f'aurora_half.jpg'
+        fileRequest = requests.get(f'https://services.swpc.noaa.gov/images/animations/ovation/north/latest.jpg', stream=True, headers=HEADER)
+
+        with open(f'./ImageCache/{FILE}', "wb") as f:
+            shutil.copyfileobj(fileRequest.raw, f)
+
+        futureForecast = discord.File(f'./ImageCache/{FILE}')
+
+        embed = discord.Embed(
+            title=f'NOAA Half Hour Aurora Forecast',
             color=discord.Color.random(),
             timestamp=datetime.datetime.now()
         )
