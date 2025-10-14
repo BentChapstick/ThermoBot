@@ -14,8 +14,8 @@ logging.basicConfig(filename='management.log', encoding='utf-8', level=logging.D
 class ManageCog(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.Bot = bot
-        self.quotes
-        self.actions
+        self.quotes = int(config.get("General", "quotes"))
+        self.actions_channel = int(config.get("General", "actionlog"))
 
     # region Listeners
     @commands.Cog.listener()
@@ -36,25 +36,25 @@ class ManageCog(commands.Cog):
                 await message.channel.send('ping')
 
         # Verify messages sent in the quotes channel contain quotes. 
-        if message.channel.id == quoteChannelID and not message.author.bot:
-            await actionLogMessage(f"Checking message by {message.author}: {message.content}")
+        if message.channel.id == self.quotes and not message.author.bot:
+            await self.actionLogMessage(f"Checking message by {message.author}: {message.content}")
             # Check if the message does not contain either quote
             if '"' not in message.content and "'" not in message.content\
                     and '“' not in message.content:
-                await actionLogMessage("Deleting message: No quotes found")
+                await self.actionLogMessage("Deleting message: No quotes found")
                 try:
                     await message.delete()
                 except discord.Forbidden:
-                    await actionLogMessage("Missing permissions to delete messages.")
+                    await self.actionLogMessage("Missing permissions to delete messages.")
                 except discord.HTTPException:
-                    await actionLogMessage("Failed to delete the message.")
+                    await self.actionLogMessage("Failed to delete the message.")
             else:
-                await actionLogMessage("Message retained: Quotes found")  # Debugging output
+                await self.actionLogMessage("Message retained: Quotes found")  # Debugging output
 
         await self.bot.process_commands(message)
 
-    async def actionLogMessage(message):
-        channel = self.bot.get_channel(actionLogChannelID)
+    async def actionLogMessage(self, message):
+        channel = self.bot.get_channel(self.actions_channel)
         await channel.send(message)
     # end region
 
