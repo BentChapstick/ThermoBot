@@ -29,11 +29,19 @@ class ManageCog(commands.Cog):
 
         # Any message that was not sent by the bot
         if not message.author.bot:
-            if 'Ping' in message.content or 'ping' in message.content.lower():
-                await message.channel.send('Pong')
+            if 'ping' in message.content.lower():
+                index = message.content.lower().find('ping')
+                if message.content[index] == 'P':
+                    await message.channel.send('Pong')
+                else:
+                    await message.channel.send('pong')
 
-            if 'Pong' in message.content or 'pong' in message.content.lower():
-                await message.channel.send('ping')
+            if 'pong' in message.content.lower():
+                index = message.content.lower().find('pong')
+                if message.content[index] == 'P':
+                    await message.channel.send('Ping')
+                else:
+                    await message.channel.send('ping')
 
         # Verify messages sent in the quotes channel contain quotes. 
         if message.channel.id == self.quotes and not message.author.bot:
