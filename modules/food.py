@@ -138,14 +138,16 @@ class foodCog(commands.Cog):
         await self.run_dinner_poll(channel)
 
     @app_commands.command(name="lunch_menu", description="Lunch Menu")
-    async def dinnerMenu(self, interaction: discord.interactions.Interaction):
+    async def lunch_menu(self, interaction: discord.interactions.Interaction):
         await interaction.response.send_message("Accessing...", delete_after=30)
-        await self.dinnerOptions(interaction.channel_id, "Lunch")
+        channel = self.bot.get_channel(interaction.channel_id)
+        await self.dinnerOptions(channel, "Lunch")
 
     @app_commands.command(name="dinner_menu", description="Dinner Menu")
-    async def dinnerMenu(self, interaction: discord.interactions.Interaction):
+    async def dinner_menu(self, interaction: discord.interactions.Interaction):
         await interaction.response.send_message("Accessing...", delete_after=30)
-        await self.dinnerOptions(interaction.channel_id, "Dinner")
+        channel = self.bot.get_channel(interaction.channel_id)
+        await self.dinnerOptions(channel, "Dinner")
 
     # end region
 
