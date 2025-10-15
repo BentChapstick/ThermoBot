@@ -15,7 +15,7 @@ config = configparser.ConfigParser(interpolation=None)
 config.read("./config.yaml")
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename='food.log', encoding='utf-8', level=logging.DEBUG)
+logging.basicConfig(filename='food.log', encoding='utf-8', level=logging.DEBUG, format="%(asctime)s;%(levelname)s;%(message)s")
 
 class foodCog(commands.Cog):
     def __init__(self, bot):
