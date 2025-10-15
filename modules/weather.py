@@ -48,13 +48,16 @@ class weatherCog(commands.Cog):
 
     @app_commands.command(name="weather", description="Lookup Weather in target city")
     async def weather(self, interaction: discord.Interaction, city: str, state: str):
-        await interaction.response.send_message("Check DMs", delete_after=60)
+        await interaction.response.send_message("Pulling...", delete_after=60)
+        target_channel = self.bot.get_channel(interaction.channel_id)
 
-        target = await self.geoCode(city, state)
-        embed, file = await self.getWeather(float(target['lat']), float(target['lon']))
-
-        author = await self.bot.fetch_user(interaction.user.id)
-        await author.send(embed=embed, file=file)
+        try:
+            target = await self.geoCode(city, state)
+            embed, file = await self.getWeather(float(target['lat']), float(target['lon']))
+            await target_channel.send(embed=embed, file=file)
+        except Exception as e:
+            await target_channel.send(f'Error pulling Forecast')
+            logger.log(logging.FATAL, e)
 
     @app_commands.command(name="aurora_forecast", description="3 Hours Aurora Prediction")
     async def aurora_forecast(self, interaction: discord.Interaction):
@@ -221,7 +224,7 @@ class weatherCog(commands.Cog):
             author = await self.bot.fetch_channel(1281273813556006932) #Bot Spam
             await author.send(embed=embed, file=file)
         except Exception as e:
-            logging.error("Failed to send weather information to Thermo General")
+            logging.error("Failed to send weather information to Thermo Server")
             logging.critical(e)
         else:
             print(f'Weather sent to Thermo at {datetime.datetime.now().strftime("%X")}')
