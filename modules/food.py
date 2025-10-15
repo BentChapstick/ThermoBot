@@ -35,7 +35,7 @@ class foodCog(commands.Cog):
     # end region
 
     # region data functions
-    async def dinnerOptions(self, channel, meal):
+    async def dinnerOptions(self, meal) -> str:
         menu = foodBot.getMeals(f"{meal}")
 
         text = ""
@@ -72,7 +72,7 @@ class foodCog(commands.Cog):
             else:
                 self.dining_hall_is_open[hall_name] = True
 
-        await channel.send(text)
+        return text
 
     async def run_dinner_poll(self, channel):
         if channel:
@@ -133,21 +133,31 @@ class foodCog(commands.Cog):
         # Manually start the daily poll
         channel = self.bot.get_channel(self.food_channel)
         await interaction.response.send_message("Starting Poll...", delete_after=30)
-        await self.dinnerOptions(channel, "Dinner")
+        message = await self.dinnerOptions("Dinner")
+        await channel.send(message)
 
         await self.run_dinner_poll(channel)
 
-    @app_commands.command(name="lunch_menu", description="Lunch Menu")
+    @app_commands.command(name="menu", description="Lunch Menu")
+    async def menu(self, timeframe: str, interaction: discord.interactions.Interaction):
+        if timeframe.lower() is 'lunch':
+            message = await self.dinnerOptions("Lunch")
+            await interaction.response.send_message(message)
+        elif timeframe.lower() is "dinner":
+            message = await self.dinnerOptions("Dinner")
+            await interaction.response.send_message(message)
+        else:
+            await interaction.response.send_message("Invalid Timeframe, please use \"Lunch\" or \"Dinner\"")
+            
+    @app_commands.command(name="lunch_menu", description="Dinner Menu")
     async def lunch_menu(self, interaction: discord.interactions.Interaction):
-        await interaction.response.send_message("Accessing...", delete_after=30)
-        channel = self.bot.get_channel(interaction.channel_id)
-        await self.dinnerOptions(channel, "Lunch")
+        message = await self.dinnerOptions("Lunch")
+        await interaction.response.send_message(message)
 
     @app_commands.command(name="dinner_menu", description="Dinner Menu")
     async def dinner_menu(self, interaction: discord.interactions.Interaction):
-        await interaction.response.send_message("Accessing...", delete_after=30)
-        channel = self.bot.get_channel(interaction.channel_id)
-        await self.dinnerOptions(channel, "Dinner")
+        message = await self.dinnerOptions("Dinner")
+        await interaction.response.send_message(message)
 
     # end region
 
@@ -160,7 +170,8 @@ class foodCog(commands.Cog):
     async def daily_poll_task(self):
         channel = self.bot.get_channel(self.food_channel)
         # print dinner options
-        await self.dinnerOptions(channel,"Dinner")
+        message = await self.dinnerOptions("Dinner")
+        await channel.send(message)
 
         # Run the poll
         await self.run_dinner_poll(channel)
