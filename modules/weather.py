@@ -12,7 +12,7 @@ config = configparser.ConfigParser(interpolation=None)
 config.read("./config.yaml")
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename='weather.log', encoding='utf-8', level=logging.DEBUG)
+logging.basicConfig(filename='weather.log', encoding='utf-8', level=logging.DEBUG, format="%(asctime)s;%(levelname)s;%(message)s")
 
 HEADER = {
     'User-Agent': 'Personal Weather Bot',
@@ -200,6 +200,8 @@ class weatherCog(commands.Cog):
 
             if forcast[0] == lon and forcast[1] == lat:
                 best = forcast
+        logger.debug(f'Aurora Check Value: {best[-1]}')
+
         if best[-1] > self.threshold and (self.lastaurorapub + datetime.timedelta(days=1)) < datetime.datetime.now():
             self.lastaurorapub = datetime.datetime.now()
             target_channel = self.bot.get_channel(self.announcements_channel)
