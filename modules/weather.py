@@ -127,9 +127,9 @@ class weatherCog(commands.Cog):
         )
         return embed, radarForecast
     
-    async def get3hour(self): #Aurora Forecast
+    async def getAurora3hour(self):
         FILE = f'geospace_3_hour.png'
-        fileRequest = requests.get(f'https://services.swpc.noaa.gov/images/geospace/{FILE}', stream=True)
+        fileRequest = requests.get(f'https://services.swpc.noaa.gov/images/geospace/{FILE}', stream=True, headers=HEADER)
         
         with open(f'./ImageCache/{FILE}', "wb") as f:
             shutil.copyfileobj(fileRequest.raw, f)
