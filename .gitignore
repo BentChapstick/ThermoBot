@@ -5,3 +5,4 @@
 /__pycache__
 Token
 *.db
+.log
