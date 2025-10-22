@@ -33,7 +33,7 @@ logging.basicConfig(filename='randomPicture.log', encoding='utf-8', level=loggin
 class RandomImageCog(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.Bot = bot
-        DATABASE.create_tables(Albums)
+        DATABASE.create_tables([Albums])
 
     # region Listeners
     @commands.Cog.listener()
@@ -146,22 +146,3 @@ class Albums(peewee.Model):
 
     class Meta:
         database = DATABASE
-
-# if __name__ == "__main__":
-#     TIMEFORMAT = "%Y-%m-%dT%H:%M:%S%z"
-    # r = requests.get("https://104.21.65.203:2283/api", headers=HEADER)
-    r = requests.request("GET", "https://photos.gumplab.com/api/albums/7984a4e5-cd1f-4a7a-863f-b2aeba700db6", headers=HEADER)
-    r = requests.request("GET", "https://photos.gumplab.com/api/assets/eceb326c-9736-4d52-9c53-033d99b85f4c/", headers=HEADER)
-    # print(type(r.status_code))
-    data:dict = r.json()
-    print(data["originalFileName"])
-    # print(data["owner"]["name"])
-    # print(f'{data["exifInfo"]["make"]} {data["exifInfo"]["model"]}')
-    # print(datetime.datetime.strptime(data["exifInfo"]["dateTimeOriginal"], TIMEFORMAT))
-    # for thing in data["assets"]:
-    #     print(thing["id"])
-
-    # fileRequest = requests.request("GET", "https://photos.gumplab.com/api/assets/a7d6b543-b90c-4c78-9830-b10173567e1d/thumbnail", headers=HEADER, stream=True)
-
-    # with open(f'./ImageCache/randomThermo.jpg', "wb") as f:
-    #     shutil.copyfileobj(fileRequest.raw, f)
