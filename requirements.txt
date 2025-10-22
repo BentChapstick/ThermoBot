@@ -3,5 +3,6 @@ cloudscraper
 configparser
 fake-useragent
 termcolor
+peewee
 python-dotenv
 python-dateutil

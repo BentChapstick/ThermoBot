@@ -1,0 +1,167 @@
+import discord
+from discord.ext import tasks, commands
+from discord import app_commands
+
+import os
+from dotenv import load_dotenv
+import requests
+import datetime
+import peewee
+import shutil
+import logging
+import configparser
+import random
+
+config = configparser.ConfigParser(interpolation=None)
+config.read("./config.yaml")
+DATABASE = peewee.SqliteDatabase(config.get("General", "database"))
+
+load_dotenv()
+TOKEN = os.getenv("IMMICH_TOKEN")
+TIMEFORMAT = "%Y-%m-%dT%H:%M:%S%z"
+HEADER = {
+"Accept": "application/json",
+'User-Agent': 'Thermo Bot',
+'From': 'cec@conklinsystems.com',
+'x-api-key': TOKEN
+}
+
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename='randomPicture.log', encoding='utf-8', level=logging.DEBUG, format="%(asctime)s;%(levelname)s;%(message)s")
+
+class RandomImageCog(commands.Cog):
+    def __init__(self, bot):
+        self.bot: commands.Bot = bot
+        DATABASE.create_tables(Albums)
+
+    # region Listeners
+    @commands.Cog.listener()
+    async def on_ready(self):
+        self.postingChannel = self.bot.get_channel(int(config.get("General", "general")))
+        self.pullRandom.start()
+
+    # end region
+
+    # region data functions
+    async def getAlbums(self) -> list:
+        albums = Albums.select()
+        reordered = [album.uuid for album in albums]
+        return reordered
+    
+    async def randomImage(self):
+        FILE = f'randomThermo.jpg'
+        albums = await self.getAlbums()
+
+        for album in albums:
+            r = requests.request("GET", f'https://photos.gumplab.com/api/albums/{album}', headers=HEADER)
+            data = r.json()
+            temp = []
+            for thing in data["assets"]:
+                temp.append(thing["id"])
+        
+        photos = list(set(temp))
+        decidedPhoto = random.choice(photos)
+        
+
+        r = requests.request("GET", f'https://photos.gumplab.com/api/assets/{decidedPhoto}/metadata', headers=HEADER)
+        fileRequest = requests.request("GET", f'https://photos.gumplab.com/api/assets/{decidedPhoto}/thumbnail', headers=HEADER, stream=True)
+
+        with open(f'./ImageCache/{FILE}', "wb") as f:
+            shutil.copyfileobj(fileRequest.raw, f)
+
+        data:dict = r.json()
+
+        thumbnail = discord.File(f'./ImageCache/{FILE}')
+
+        embed = discord.Embed(
+            title=f'{data["originalFileName"]}',
+            description=f'Photo by {data["owner"]["name"]}\nWith {data["exifInfo"]["make"]} {data["exifInfo"]["model"]}',
+            color=discord.Color.random(),
+            timestamp=datetime.datetime.strptime(data["exifInfo"]["dateTimeOriginal"], TIMEFORMAT)
+        )
+
+        embed.set_image(
+            url=f'attachment://{FILE}'
+        )
+
+        return embed, thumbnail
+
+        print(data["owner"]["name"])
+        print(f'{data["exifInfo"]["make"]} {data["exifInfo"]["model"]}')
+        print(datetime.datetime.strptime(data["exifInfo"]["dateTimeOriginal"], TIMEFORMAT))
+
+    # end region
+
+    # region Slash Commands
+    @app_commands.command(name="album_add", description="Add Album to search database")
+    async def album_add(self, interaction: discord.Interaction, uuid: str, name: str):
+        try:
+            r = requests.request("GET", f'https://photos.gumplab.com/api/albums/{uuid}', headers=HEADER)
+        except Exception as e:
+            await interaction.response.send_message("Error pinging photo server")
+            logger.critical(e)
+            return
+        if r.status_code != 200:
+            await interaction.response.send_message("Invalid album UUID", delete_after=300)
+        else:
+            Albums.replace(uuid=uuid, name=name).execute()
+            logger.info(f'{interaction.user.name} added {name}-{uuid} to album database')
+            await interaction.response.send_message(f'Added {name} to album database', delete_after=60)
+
+    @app_commands.command(name="album_list", description="List albums in database")
+    async def album_list(self, interaction: discord.Interaction):
+        albums = Albums.select()
+        reordered = [album.name for album in albums]
+        interaction.response.send_message(f'Album List: {reordered}', delete_after=300)
+
+    @app_commands.command(name="album_random", description="Returns a random image")
+    async def album_random(self, interaction: discord.Interaction):
+        try:
+            embed, file = self.randomImage()
+            await interaction.response.send_message(embed=embed, file=file)
+        except Exception as e:
+            await interaction.response.send_message("Error Pulling Image")
+            logger.error(e)
+    # end region
+
+    # region autolooping tasks
+    # @tasks.loop(hours=1)
+    @tasks.loop(time=[datetime.time(hour=11)])
+    async def pullRandom(self):
+        try:
+            embed, file = self.randomImage()
+            await self.postingChannel.send(embed=embed, file=file)
+        except Exception as e:
+            logger.error(e)
+
+    # end region
+
+async def setup(bot: commands.Bot):
+    await bot.add_cog(RandomImageCog(bot))
+
+class Albums(peewee.Model):
+    uuid = peewee.TextField(primary_key=True)
+    name = peewee.TextField(null=True)
+
+    class Meta:
+        database = DATABASE
+
+# if __name__ == "__main__":
+#     TIMEFORMAT = "%Y-%m-%dT%H:%M:%S%z"
+    # r = requests.get("https://104.21.65.203:2283/api", headers=HEADER)
+    r = requests.request("GET", "https://photos.gumplab.com/api/albums/7984a4e5-cd1f-4a7a-863f-b2aeba700db6", headers=HEADER)
+    r = requests.request("GET", "https://photos.gumplab.com/api/assets/eceb326c-9736-4d52-9c53-033d99b85f4c/", headers=HEADER)
+    # print(type(r.status_code))
+    data:dict = r.json()
+    print(data["originalFileName"])
+    # print(data["owner"]["name"])
+    # print(f'{data["exifInfo"]["make"]} {data["exifInfo"]["model"]}')
+    # print(datetime.datetime.strptime(data["exifInfo"]["dateTimeOriginal"], TIMEFORMAT))
+    # for thing in data["assets"]:
+    #     print(thing["id"])
+
+    # fileRequest = requests.request("GET", "https://photos.gumplab.com/api/assets/a7d6b543-b90c-4c78-9830-b10173567e1d/thumbnail", headers=HEADER, stream=True)
+
+    # with open(f'./ImageCache/randomThermo.jpg', "wb") as f:
+    #     shutil.copyfileobj(fileRequest.raw, f)
