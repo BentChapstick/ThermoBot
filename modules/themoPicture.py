@@ -122,7 +122,7 @@ class RandomImageCog(commands.Cog):
         target_channel = self.bot.get_channel(interaction.channel_id)
         try:
             embed, file = await self.randomImage()
-            embed.footer = f'Requested by: {interaction.user.nick}'
+            embed.set_footer(f'Requested by: {interaction.user.nick}')
             await target_channel.send(embed=embed, file=file)
         except Exception as e:
             await interaction.response.send_message("Error Pulling Image")
