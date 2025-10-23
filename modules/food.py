@@ -121,14 +121,14 @@ class foodCog(commands.Cog):
     # end region
 
     # region Slash Commands
-    @app_commands.command(name="update-menu", description="Updates the Menu Database")
-    async def pullMenu(self, interaction: discord.interactions.Interaction):
+    @app_commands.command(name="update_menu", description="Updates the Menu Database")
+    async def update_menu(self, interaction: discord.interactions.Interaction):
         print("Getting new menu")
         await interaction.response.send_message("Updating")
         await chartwells_queryFast.main()
         await interaction.response.edit_message("Updated")
 
-    @app_commands.command(name="start-poll", description="Starts a dinner poll in the food channel") #Manually start dinner poll
+    @app_commands.command(name="start_poll", description="Starts a dinner poll in the food channel") #Manually start dinner poll
     async def start_poll(self, interaction: discord.interactions.Interaction):
         # Manually start the daily poll
         channel = self.bot.get_channel(self.food_channel)
@@ -138,7 +138,7 @@ class foodCog(commands.Cog):
 
         await self.run_dinner_poll(channel)
 
-    @app_commands.command(name="menu", description="Lunch Menu")
+    @app_commands.command(name="menu", description="(Lunch/Dinner) Menu")
     async def menu(self, timeframe: str, interaction: discord.interactions.Interaction):
         if timeframe.lower() is 'lunch':
             message = await self.dinnerOptions("Lunch")

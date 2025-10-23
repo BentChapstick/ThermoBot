@@ -23,7 +23,8 @@ HEADER = {
 "Accept": "application/json",
 'User-Agent': 'Thermo Bot',
 'From': 'cec@conklinsystems.com',
-'x-api-key': TOKEN
+'x-api-key': TOKEN,
+"shared": "true"
 }
 
 
@@ -146,3 +147,7 @@ class Albums(peewee.Model):
 
     class Meta:
         database = DATABASE
+
+if __name__ == "__main__":
+    r = requests.request("GET", f'https://photos.gumplab.com/api/albums', headers=HEADER)
+    print(r.text)
