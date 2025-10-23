@@ -29,7 +29,7 @@ HEADER = {
 
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(filename='randomPicture.log', encoding='utf-8', level=logging.DEBUG, format="%(asctime)s;%(levelname)s;%(message)s")
+logging.basicConfig(filename='./randomPicture.log', encoding='utf-8', level=logging.INFO, format="%(asctime)s;%(levelname)s;%(message)s")
 
 class RandomImageCog(commands.Cog):
     def __init__(self, bot):
@@ -114,7 +114,7 @@ class RandomImageCog(commands.Cog):
     async def album_list(self, interaction: discord.Interaction):
         albums = Albums.select()
         reordered = [album.name for album in albums]
-        interaction.response.send_message(f'Album List: {reordered}', delete_after=300)
+        await interaction.response.send_message(f'Album List: {reordered}', delete_after=300)
 
     @app_commands.command(name="album_random", description="Returns a random image")
     async def album_random(self, interaction: discord.Interaction):
@@ -149,5 +149,5 @@ class Albums(peewee.Model):
         database = DATABASE
 
 if __name__ == "__main__":
-    r = requests.request("GET", f'https://photos.gumplab.com/api/albums', headers=HEADER)
-    print(r.text)
+    # r = requests.request("GET", f'https://photos.gumplab.com/api/albums', headers=HEADER)
+    logger.error("test")
