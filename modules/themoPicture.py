@@ -65,7 +65,7 @@ class RandomImageCog(commands.Cog):
         decidedPhoto = random.choice(photos)
         
 
-        r = requests.request("GET", f'https://photos.gumplab.com/api/assets/{decidedPhoto}/metadata', headers=HEADER)
+        r = requests.request("GET", f'https://photos.gumplab.com/api/assets/{decidedPhoto}', headers=HEADER)
         fileRequest = requests.request("GET", f'https://photos.gumplab.com/api/assets/{decidedPhoto}/thumbnail', headers=HEADER, stream=True)
 
         with open(f'./ImageCache/{FILE}', "wb") as f:
@@ -154,4 +154,19 @@ class Albums(peewee.Model):
 
 if __name__ == "__main__":
     # r = requests.request("GET", f'https://photos.gumplab.com/api/albums', headers=HEADER)
-    logger.error("test")
+    albums = ["8b7d102a-37d1-4d37-80bc-5b041bb6a0a9"]
+    for album in albums:
+            r = requests.request("GET", f'https://photos.gumplab.com/api/albums/8b7d102a-37d1-4d37-80bc-5b041bb6a0a9', headers=HEADER)
+            data = r.json()
+            temp = []
+            for thing in data["assets"]:
+                temp.append(thing["id"])
+        
+    photos = list(set(temp))
+    
+    decidedPhoto = random.choice(photos)
+    print(type(decidedPhoto))
+    r = requests.request("GET", f'https://photos.gumplab.com/api/assets/{decidedPhoto}', headers=HEADER)
+    
+    data:dict = r.json()
+    print(data["originalFileName"])
