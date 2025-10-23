@@ -139,7 +139,7 @@ class foodCog(commands.Cog):
         await self.run_dinner_poll(channel)
 
     @app_commands.command(name="menu", description="(Lunch/Dinner) Menu")
-    async def menu(self, timeframe: str, interaction: discord.interactions.Interaction):
+    async def menu(self, interaction: discord.interactions.Interaction, timeframe: str):
         if timeframe.lower() == 'lunch':
             message = await self.dinnerOptions("Lunch")
             await interaction.response.send_message(message)
