@@ -123,6 +123,7 @@ class RandomImageCog(commands.Cog):
             await interaction.response.send_message(embed=embed, file=file)
         except Exception as e:
             await interaction.response.send_message("Error Pulling Image")
+            print(f'Someone shoot me {e}')
             logger.error(e)
     # end region
 
