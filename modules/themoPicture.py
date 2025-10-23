@@ -54,10 +54,10 @@ class RandomImageCog(commands.Cog):
         FILE = f'randomThermo.jpg'
         albums = await self.getAlbums()
 
+        temp = []
         for album in albums:
             r = requests.request("GET", f'https://photos.gumplab.com/api/albums/{album}', headers=HEADER)
             data = r.json()
-            temp = []
             for thing in data["assets"]:
                 temp.append(thing["id"])
         
@@ -77,7 +77,7 @@ class RandomImageCog(commands.Cog):
 
         embed = discord.Embed(
             title=f'{data["originalFileName"]}',
-            description=f'Photo by {data["owner"]["name"]}\nWith {data["exifInfo"]["make"]} {data["exifInfo"]["model"]}',
+            description=f'Photo by {data["owner"]["name"]}\nWith {data["exifInfo"]["make"]} {data["exifInfo"]["model"]}\nhttps://photos.gumplab.com/photos/{decidedPhoto}',
             color=discord.Color.random(),
             timestamp=datetime.datetime.strptime(data["exifInfo"]["dateTimeOriginal"], TIMEFORMAT)
         )
@@ -122,6 +122,7 @@ class RandomImageCog(commands.Cog):
         target_channel = self.bot.get_channel(interaction.channel_id)
         try:
             embed, file = await self.randomImage()
+            embed.footer = f'Requested by: {interaction.user.nick}'
             await target_channel.send(embed=embed, file=file)
         except Exception as e:
             await interaction.response.send_message("Error Pulling Image")
