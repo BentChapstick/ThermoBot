@@ -118,9 +118,11 @@ class RandomImageCog(commands.Cog):
 
     @app_commands.command(name="album_random", description="Returns a random image")
     async def album_random(self, interaction: discord.Interaction):
+        await interaction.response.send_message("Pulling...", delete_after=30)
+        target_channel = self.bot.get_channel(interaction.channel_id)
         try:
             embed, file = await self.randomImage()
-            await interaction.response.send_message(embed=embed, file=file)
+            await target_channel.send(embed=embed, file=file)
         except Exception as e:
             await interaction.response.send_message("Error Pulling Image")
             print(f'Someone shoot me {e}')
