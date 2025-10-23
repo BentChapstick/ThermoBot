@@ -134,6 +134,7 @@ class RandomImageCog(commands.Cog):
             embed, file = await self.randomImage()
             await self.postingChannel.send(embed=embed, file=file)
         except Exception as e:
+            print(f'Someone shoot me {e}')
             logger.error(e)
 
     # end region
