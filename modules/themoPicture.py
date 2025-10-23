@@ -119,7 +119,7 @@ class RandomImageCog(commands.Cog):
     @app_commands.command(name="album_random", description="Returns a random image")
     async def album_random(self, interaction: discord.Interaction):
         try:
-            embed, file = self.randomImage()
+            embed, file = await self.randomImage()
             await interaction.response.send_message(embed=embed, file=file)
         except Exception as e:
             await interaction.response.send_message("Error Pulling Image")
@@ -131,7 +131,7 @@ class RandomImageCog(commands.Cog):
     @tasks.loop(time=[datetime.time(hour=11)])
     async def pullRandom(self):
         try:
-            embed, file = self.randomImage()
+            embed, file = await self.randomImage()
             await self.postingChannel.send(embed=embed, file=file)
         except Exception as e:
             logger.error(e)
