@@ -140,10 +140,10 @@ class foodCog(commands.Cog):
 
     @app_commands.command(name="menu", description="(Lunch/Dinner) Menu")
     async def menu(self, timeframe: str, interaction: discord.interactions.Interaction):
-        if timeframe.lower() is 'lunch':
+        if timeframe.lower() == 'lunch':
             message = await self.dinnerOptions("Lunch")
             await interaction.response.send_message(message)
-        elif timeframe.lower() is "dinner":
+        elif timeframe.lower() == "dinner":
             message = await self.dinnerOptions("Dinner")
             await interaction.response.send_message(message)
         else:
