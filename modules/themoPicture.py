@@ -107,7 +107,6 @@ class RandomImageCog(commands.Cog):
         if r.status_code != 200:
             await interaction.response.send_message("Invalid album UUID", delete_after=300)
         else:
-            r = requests.request("GET", f'https://photos.gumplab.com/api/shared-links/{uuid}', headers=HEADER)
             Albums.replace(uuid=uuid, name=name, share=r.json()[0]["key"]).execute()
             logger.info(f'{interaction.user.name} added {name}-{uuid} to album database')
             await interaction.response.send_message(f'Added {name} to album database', delete_after=60)
