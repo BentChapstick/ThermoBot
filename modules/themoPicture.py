@@ -132,8 +132,8 @@ class RandomImageCog(commands.Cog):
     # end region
 
     # region autolooping tasks
-    @tasks.loop(hours=1)
-    # @tasks.loop(time=[datetime.time(hour=11)])
+    # @tasks.loop(hours=1)
+    @tasks.loop(time=[datetime.time(hour=11)])
     async def pullRandom(self):
         try:
             embed, file = await self.randomImage()
