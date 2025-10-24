@@ -39,7 +39,7 @@ class RandomImageCog(commands.Cog):
     # region Listeners
     @commands.Cog.listener()
     async def on_ready(self):
-        self.postingChannel = self.bot.get_channel(int(config.get("General", "general")))
+        self.postingChannel = self.bot.get_channel(int(config.get("General", "randomImage")))
         self.pullRandom.start()
 
     # end region
@@ -132,12 +132,12 @@ class RandomImageCog(commands.Cog):
     # end region
 
     # region autolooping tasks
-    # @tasks.loop(hours=1)
-    @tasks.loop(time=[datetime.time(hour=11)])
+    @tasks.loop(hours=1)
+    # @tasks.loop(time=[datetime.time(hour=11)])
     async def pullRandom(self):
         try:
             embed, file = await self.randomImage()
-            await self.postingChannel.send(embed=embed, file=file)
+            await self.postingChannel.send(embed=embed, file=file, silent=True)
         except Exception as e:
             print(f'Someone shoot me {e}')
             logger.error(e)
