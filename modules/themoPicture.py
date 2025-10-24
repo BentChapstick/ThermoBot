@@ -99,7 +99,7 @@ class RandomImageCog(commands.Cog):
     async def album_add(self, interaction: discord.Interaction, uuid: str, name: str):
         try:
             r = requests.request("GET", f'https://photos.gumplab.com/api/albums/{uuid}', headers=HEADER)
-            r = requests.request("GET", f'https://photos.gumplab.com/api/shared-links', headers=HEADER, json={"id": uuid})
+            s = requests.request("GET", f'https://photos.gumplab.com/api/shared-links', headers=HEADER, json={"id": uuid})
         except Exception as e:
             await interaction.response.send_message("Error pinging photo server")
             logger.critical(e)
@@ -107,7 +107,7 @@ class RandomImageCog(commands.Cog):
         if r.status_code != 200:
             await interaction.response.send_message("Invalid album UUID", delete_after=300)
         else:
-            Albums.replace(uuid=uuid, name=name, share=r.json()[0]["key"]).execute()
+            Albums.replace(uuid=uuid, name=name, share=(s.json()[0]["key"])).execute()
             logger.info(f'{interaction.user.name} added {name}-{uuid} to album database')
             await interaction.response.send_message(f'Added {name} to album database', delete_after=60)
 
@@ -157,10 +157,11 @@ class Albums(peewee.Model):
 
 if __name__ == "__main__":
     # r = requests.request("GET", f'https://photos.gumplab.com/api/albums', headers=HEADER)
-    uuid = "4cfb50fb-b915-41d1-a415-84db60ee8ac3"
+    uuid = "8b7d102a-37d1-4d37-80bc-5b041bb6a0a9"
     # for album in albums:
     # r = requests.request("POST", f'https://photos.gumplab.com/api/shared-links', headers=HEADER, json={"albumId": uuid, "expiresAt": str(datetime.datetime(year=2025, month=11, day=1)), "type": "ALBUM"})
     # print(r.json())
     r = requests.request("GET", f'https://photos.gumplab.com/api/shared-links', headers=HEADER, json={"id": uuid})
     data = r.json()
-    print(data[0]["key"])
+    print(data)
+    print(r.json()[0]["key"])
