@@ -7,3 +7,5 @@
 Token
 *.db
 *.log
+/gCalSecret.json
+/.vscode
