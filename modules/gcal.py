@@ -2,8 +2,6 @@ import discord
 from discord.ext import tasks, commands
 from discord import app_commands
 
-import os
-from dotenv import load_dotenv
 import requests
 import datetime
 import dateutil
@@ -18,9 +16,6 @@ config.read("./config.yaml")
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename='./calendar.log', encoding='utf-8', level=logging.INFO, format="%(asctime)s;%(levelname)s;%(message)s")
-
-load_dotenv()
-TOKEN = os.getenv("GCAL_TOKEN")
 
 class CalendarCog(commands.Cog):
     def __init__(self, bot):
