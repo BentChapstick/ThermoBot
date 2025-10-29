@@ -69,7 +69,34 @@ class CalendarCog(commands.Cog):
     # end region
 
     # region Slash Commands
+    @app_commands.command(name="test_calendar", description="Add Album to search database")
+    async def test_calendar(self, interaction: discord.Interaction):
+        try:
+            events = await self.gCalToday()
+            if len(events) > 0:
+                outString = ""
+                TIMEFORMAT = "%I:%M%p"
+                for event in events:
+                    if event[1] == event[2]:
+                        outString = f'All Day: {event[0]}\n' + outString
+                    else:
+                        outString += f'{event[0]} from {event[1].strftime(TIMEFORMAT)} to {event[2].strftime(TIMEFORMAT)}\n'
 
+                embed = discord.Embed(
+                    title=f'Today\'s events:',
+                    description=outString,
+                    color=discord.Color.random(),
+                    timestamp=timeMin
+                )
+                logger.info("Sent todays events")
+                await interaction.response.send_message(embed=embed)
+            else:
+                interaction.response.send_message("No events today")
+                logger.info("No events today")
+
+        except Exception as e:
+            print(f'Someone shoot me {e}')
+            logger.error(e)
     # end region
 
     # region Autolooping Tasks
