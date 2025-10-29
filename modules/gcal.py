@@ -10,7 +10,7 @@ import dateutil
 import logging
 import configparser
 
-from google_auth_oauthlib.flow import InstalledAppFlow
+from oauth2client.service_account import ServiceAccountCredentials
 import googleapiclient.discovery
 
 config = configparser.ConfigParser(interpolation=None)
@@ -27,8 +27,7 @@ class CalendarCog(commands.Cog):
         self.bot: commands.Bot = bot
 
         scopes = ['https://www.googleapis.com/auth/calendar.events.readonly']
-        flow = InstalledAppFlow.from_client_secrets_file('gCalSecret.json', scopes=scopes)
-        credentials = flow.run_local_server(port=0)
+        credentials = ServiceAccountCredentials.from_json_keyfile_name('gCalSecret.json', scopes=scopes)
         self.service: googleapiclient.discovery.Resource = googleapiclient.discovery.build('calendar', 'v3', credentials=credentials)
         
         self.thermoCal = "c_454bf06f6bc96b5ce43d75cba2093607f4ce0fb8d9c17677ec6e3b601def19c4@group.calendar.google.com"
@@ -115,8 +114,7 @@ if __name__ == "__main__":
     timeMin = datetime.datetime(year=timeMin.year, month=timeMin.month, day=timeMin.day, tzinfo=local)
 
     scopes = ['https://www.googleapis.com/auth/calendar.events.readonly']
-    flow = InstalledAppFlow.from_client_secrets_file('client_secret_534155768771-rtgqeltsqqj3hb06fvnvf3rqhu9hvq9q.apps.googleusercontent.com.json', scopes=scopes)
-    credentials = flow.run_local_server(port=0)
+    credentials = ServiceAccountCredentials.from_json_keyfile_name('gCalSecret.json', scopes=scopes)
     service: googleapiclient.discovery.Resource = googleapiclient.discovery.build('calendar', 'v3', credentials=credentials)
     
     thermoCal = "c_454bf06f6bc96b5ce43d75cba2093607f4ce0fb8d9c17677ec6e3b601def19c4@group.calendar.google.com"

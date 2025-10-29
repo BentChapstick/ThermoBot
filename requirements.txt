@@ -6,5 +6,5 @@ termcolor
 peewee
 python-dotenv
 python-dateutil
-google-auth-oauthlib
+oauth2client
 google-api-python-client
