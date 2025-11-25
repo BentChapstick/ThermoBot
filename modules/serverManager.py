@@ -13,9 +13,9 @@ config.read("./config.yaml")
 class serverManCog(commands.Cog):
     def __init__(self, bot):
         self.bot: commands.Bot = bot
-        self.serverIP = config.get("mcIP")
-        self.rconPort = int(config.get("rconPort"))
-        self.rconPass = config.get("rconPass")
+        self.serverIP = config.get("General","mcIP")
+        self.rconPort = int(config.get("General", "rconPort"))
+        self.rconPass = config.get("General", "rconPass")
 
     @app_commands.command(name="getplayers", description="Gets the current players on the server")
     async def playerCount(self, interaction: discord.interactions.Interaction):
