@@ -23,3 +23,6 @@ class serverManCog(commands.Cog):
             resp = mcr.command("")
 
         await interaction.response.send_message(resp)
+
+async def setup(bot: commands.Bot):
+    await bot.add_cog(serverManCog(bot))
