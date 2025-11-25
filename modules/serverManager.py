@@ -17,10 +17,9 @@ class serverManCog(commands.Cog):
         self.rconPort = int(config.get("rconPort"))
         self.rconPass = config.get("rconPass")
 
-    @app_commands.command(name="getPlayers", description="Gets the current players on the server")
+    @app_commands.command(name="getplayers", description="Gets the current players on the server")
     async def playerCount(self, interaction: discord.interactions.Interaction):
         with MCRcon(self.serverIP, self.rconPass, self.rconPort) as mcr:
             resp = mcr.command("")
 
         await interaction.response.send_message(resp)
-        
