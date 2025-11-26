@@ -25,10 +25,10 @@ class serverManCog(commands.Cog):
         await interaction.response.send_message(resp)
 
     @app_commands.command(name="addwhitelist", description="add your minecraft username to the server whitelist")
-    async def addWhitelist(self, username, interaction: discord.interactions.Interaction):
+    async def addWhitelist(self, interaction: discord.interactions.Interaction, username: str):
         with MCRcon(self.serverIP, self.rconPass, self.rconPort) as mcr:
             resp = mcr.command(f"whitelist add {username}")
-
+        print(f"Server responded: {resp}")
         await interaction.response.send_message(resp)
 
 async def setup(bot: commands.Bot):
