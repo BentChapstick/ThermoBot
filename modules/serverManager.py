@@ -20,7 +20,14 @@ class serverManCog(commands.Cog):
     @app_commands.command(name="getplayers", description="Gets the current players on the server")
     async def playerCount(self, interaction: discord.interactions.Interaction):
         with MCRcon(self.serverIP, self.rconPass, self.rconPort) as mcr:
-            resp = mcr.command("")
+            resp = mcr.command("list")
+
+        await interaction.response.send_message(resp)
+
+    @app_commands.command(name="addwhitelist", description="add your minecraft username to the server whitelist")
+    async def addWhitelist(self, username, interaction: discord.interactions.Interaction):
+        with MCRcon(self.serverIP, self.rconPass, self.rconPort) as mcr:
+            resp = mcr.command(f"whitelist add {username}")
 
         await interaction.response.send_message(resp)
 
