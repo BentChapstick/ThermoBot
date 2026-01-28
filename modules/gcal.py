@@ -65,7 +65,7 @@ class CalendarCog(commands.Cog):
     # end region
 
     # region Slash Commands
-    @app_commands.command(name="test_calendar", description="Add Album to search database")
+    @app_commands.command(name="test_calendar", description="Test Calendar Integration")
     async def test_calendar(self, interaction: discord.Interaction):
         try:
             events = await self.gCalToday()
