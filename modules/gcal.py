@@ -87,7 +87,7 @@ class CalendarCog(commands.Cog):
                 logger.info("Sent todays events")
                 await interaction.response.send_message(embed=embed)
             else:
-                interaction.response.send_message("No events today")
+                await interaction.response.send_message("No events today")
                 logger.info("No events today")
 
         except Exception as e:
