@@ -106,7 +106,7 @@ class CalendarCog(commands.Cog):
                     title=f'Today\'s events:',
                     description=outString,
                     color=discord.Color.random(),
-                    timestamp=timeMin
+                    timestamp=datetime.datetime.now()
                 )
                 logger.info("Sent todays events")
                 await interaction.response.send_message(embed=embed)
@@ -119,7 +119,7 @@ class CalendarCog(commands.Cog):
             logger.error(e)
 
     @app_commands.command(name="calendar_future", description="# days into future")
-    async def test_calendar(self, interaction: discord.Interaction, days: int):
+    async def calendar_future(self, interaction: discord.Interaction, days: int):
         try:
             events = await self.gCalFuture(days)
             if len(events) > 0:
@@ -135,7 +135,7 @@ class CalendarCog(commands.Cog):
                     title=f'#{days} days into the future events:',
                     description=outString,
                     color=discord.Color.random(),
-                    timestamp=timeMin
+                    timestamp=datetime.datetime.now()
                 )
                 logger.info("Sent todays events")
                 await interaction.response.send_message(embed=embed)
@@ -166,7 +166,7 @@ class CalendarCog(commands.Cog):
                     title=f'Today\'s events:',
                     description=outString,
                     color=discord.Color.random(),
-                    timestamp=timeMin
+                    timestamp=datetime.datetime.now()
                 )
                 logger.info("Sent todays events")
                 await self.postingChannel.send(embed=embed)
