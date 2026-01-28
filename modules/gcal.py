@@ -132,7 +132,7 @@ class CalendarCog(commands.Cog):
                         outString += f'{event[0]} from {event[1].strftime(TIMEFORMAT)} to {event[2].strftime(TIMEFORMAT)}\n'
 
                 embed = discord.Embed(
-                    title=f'Today\'s events:',
+                    title=f'#{days} days into the future events:',
                     description=outString,
                     color=discord.Color.random(),
                     timestamp=timeMin
