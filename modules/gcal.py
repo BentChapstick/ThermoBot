@@ -1,3 +1,4 @@
+from pathlib import Path
 import discord
 from discord.ext import tasks, commands
 from discord import app_commands
@@ -22,7 +23,7 @@ class CalendarCog(commands.Cog):
         self.bot: commands.Bot = bot
 
         scopes = ['https://www.googleapis.com/auth/calendar.events.readonly']
-        credentials = ServiceAccountCredentials.from_json_keyfile_name('gCalSecret.json', scopes=scopes)
+        credentials = ServiceAccountCredentials.from_json_keyfile_name(f'{Path(__file__).parent.parent}/gCalSecret.json', scopes=scopes)
         self.service: googleapiclient.discovery.Resource = googleapiclient.discovery.build('calendar', 'v3', credentials=credentials)
         
         self.thermoCal = "c_454bf06f6bc96b5ce43d75cba2093607f4ce0fb8d9c17677ec6e3b601def19c4@group.calendar.google.com"
@@ -136,7 +137,7 @@ if __name__ == "__main__":
     timeMin = datetime.datetime(year=timeMin.year, month=timeMin.month, day=timeMin.day, tzinfo=local)
 
     scopes = ['https://www.googleapis.com/auth/calendar.events.readonly']
-    credentials = ServiceAccountCredentials.from_json_keyfile_name('gCalSecret.json', scopes=scopes)
+    credentials = ServiceAccountCredentials.from_json_keyfile_name(f'{Path(__file__).parent.parent}/gCalSecret.json', scopes=scopes)
     service: googleapiclient.discovery.Resource = googleapiclient.discovery.build('calendar', 'v3', credentials=credentials)
     
     thermoCal = "c_454bf06f6bc96b5ce43d75cba2093607f4ce0fb8d9c17677ec6e3b601def19c4@group.calendar.google.com"
