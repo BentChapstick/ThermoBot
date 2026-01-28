@@ -62,6 +62,30 @@ class CalendarCog(commands.Cog):
             eventList.append(tuple((event['summary'], startTime, endTime)))
 
         return eventList
+    
+    async def gCalFuture(self, days: int) -> list:
+        local = dateutil.tz.gettz('America/New_York')
+        timeMax = datetime.datetime.now(local) + datetime.timedelta(days=days)
+        timeMin = datetime.datetime.now(local)
+        timeMax = datetime.datetime(year=timeMax.year, month=timeMax.month, day=timeMax.day, tzinfo=local)
+        timeMin = datetime.datetime(year=timeMin.year, month=timeMin.month, day=timeMin.day, tzinfo=local)
+
+        events_result = self.service.events().list(calendarId=self.thermoCal, timeMax=timeMax.isoformat(), timeMin=timeMin.isoformat()).execute()
+        events = events_result.get('items', [])
+
+        eventList = []
+        for event in events:
+            print(f"Event Summary: {event['summary']}")
+            if "dateTime" in event["start"].keys():
+                startTime = datetime.datetime.strptime(event['start']['dateTime'], "%Y-%m-%dT%H:%M:%S%z")
+                endTime = datetime.datetime.strptime(event['end']['dateTime'], "%Y-%m-%dT%H:%M:%S%z")
+            elif "date" in event["start"].keys():
+                startTime = datetime.datetime.strptime(event['start']['date'], "%Y-%m-%d")
+                endTime = datetime.datetime.strptime(event['start']['date'], "%Y-%m-%d")
+            
+            eventList.append(tuple((event['summary'], startTime, endTime)))
+
+        return eventList
     # end region
 
     # region Slash Commands
@@ -69,6 +93,35 @@ class CalendarCog(commands.Cog):
     async def test_calendar(self, interaction: discord.Interaction):
         try:
             events = await self.gCalToday()
+            if len(events) > 0:
+                outString = ""
+                TIMEFORMAT = "%I:%M%p"
+                for event in events:
+                    if event[1] == event[2]:
+                        outString = f'All Day: {event[0]}\n' + outString
+                    else:
+                        outString += f'{event[0]} from {event[1].strftime(TIMEFORMAT)} to {event[2].strftime(TIMEFORMAT)}\n'
+
+                embed = discord.Embed(
+                    title=f'Today\'s events:',
+                    description=outString,
+                    color=discord.Color.random(),
+                    timestamp=timeMin
+                )
+                logger.info("Sent todays events")
+                await interaction.response.send_message(embed=embed)
+            else:
+                await interaction.response.send_message("No events today")
+                logger.info("No events today")
+
+        except Exception as e:
+            print(f'Someone shoot me {e}')
+            logger.error(e)
+
+    @app_commands.command(name="calendar_future", description="# days into future")
+    async def test_calendar(self, interaction: discord.Interaction, days: int):
+        try:
+            events = await self.gCalFuture(days)
             if len(events) > 0:
                 outString = ""
                 TIMEFORMAT = "%I:%M%p"
