@@ -39,31 +39,7 @@ class CalendarCog(commands.Cog):
 
     # region Data Functions
 
-    async def gCalToday(self) -> list:
-        local = dateutil.tz.gettz('America/New_York')
-        timeMax = datetime.datetime.now(local) + datetime.timedelta(days=1)
-        timeMin = datetime.datetime.now(local)
-        timeMax = datetime.datetime(year=timeMax.year, month=timeMax.month, day=timeMax.day, tzinfo=local)
-        timeMin = datetime.datetime(year=timeMin.year, month=timeMin.month, day=timeMin.day, tzinfo=local)
-
-        events_result = self.service.events().list(calendarId=self.thermoCal, timeMax=timeMax.isoformat(), timeMin=timeMin.isoformat()).execute()
-        events = events_result.get('items', [])
-
-        eventList = []
-        for event in events:
-            print(f"Event Summary: {event['summary']}")
-            if "dateTime" in event["start"].keys():
-                startTime = datetime.datetime.strptime(event['start']['dateTime'], "%Y-%m-%dT%H:%M:%S%z")
-                endTime = datetime.datetime.strptime(event['end']['dateTime'], "%Y-%m-%dT%H:%M:%S%z")
-            elif "date" in event["start"].keys():
-                startTime = datetime.datetime.strptime(event['start']['date'], "%Y-%m-%d")
-                endTime = datetime.datetime.strptime(event['start']['date'], "%Y-%m-%d")
-            
-            eventList.append(tuple((event['summary'], startTime, endTime)))
-
-        return eventList
-    
-    async def gCalFuture(self, days: int) -> list:
+    async def gCalFuture(self, days: int = 1) -> list:
         local = dateutil.tz.gettz('America/New_York')
         timeMax = datetime.datetime.now(local) + datetime.timedelta(days=days)
         timeMin = datetime.datetime.now(local)
@@ -75,7 +51,7 @@ class CalendarCog(commands.Cog):
 
         eventList = []
         for event in events:
-            print(f"Event Summary: {event['summary']}")
+            # print(f"Event Summary: {event['summary']}")
             if "dateTime" in event["start"].keys():
                 startTime = datetime.datetime.strptime(event['start']['dateTime'], "%Y-%m-%dT%H:%M:%S%z")
                 endTime = datetime.datetime.strptime(event['end']['dateTime'], "%Y-%m-%dT%H:%M:%S%z")
@@ -92,7 +68,7 @@ class CalendarCog(commands.Cog):
     @app_commands.command(name="test_calendar", description="Test Calendar Integration")
     async def test_calendar(self, interaction: discord.Interaction):
         try:
-            events = await self.gCalToday()
+            events = await self.gCalFuture()
             if len(events) > 0:
                 outString = ""
                 TIMEFORMAT = "%I:%M%p"
@@ -152,7 +128,7 @@ class CalendarCog(commands.Cog):
     @tasks.loop(time=[datetime.time(hour=11)])
     async def eventsToday(self):
         try:
-            events = await self.gCalToday()
+            events = await self.gCalFuture()
             if len(events) > 0:
                 outString = ""
                 TIMEFORMAT = "%I:%M%p"
