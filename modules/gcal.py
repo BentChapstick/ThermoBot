@@ -33,7 +33,7 @@ class CalendarCog(commands.Cog):
     async def on_ready(self):
         logger.info("Calendar Module Loaded")
         self.eventsToday.start()
-        self.postingChannel = self.bot.get_channel(int(config.get("General", "organize")))
+        self.postingChannel = await self.bot.fetch_channel(int(config.get("General", "organize")))
 
     # end region
 
