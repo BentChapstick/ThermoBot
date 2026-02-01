@@ -125,7 +125,8 @@ class CalendarCog(commands.Cog):
     # end region
 
     # region Autolooping Tasks
-    @tasks.loop(time=[datetime.time(hour=11)])
+    @tasks.loop(hours=1)
+    # @tasks.loop(time=[datetime.time(hour=11)])
     async def eventsToday(self):
         try:
             events = await self.gCalFuture()
