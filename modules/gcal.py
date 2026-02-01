@@ -125,8 +125,8 @@ class CalendarCog(commands.Cog):
     # end region
 
     # region Autolooping Tasks
-    @tasks.loop(hours=1)
-    # @tasks.loop(time=[datetime.time(hour=11)])
+    # @tasks.loop(hours=1)
+    @tasks.loop(time=[datetime.time(hour=11)])
     async def eventsToday(self):
         postingChannel = await self.bot.fetch_channel(int(config.get("General", "organize")))
         try:
