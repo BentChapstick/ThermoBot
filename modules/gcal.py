@@ -33,7 +33,7 @@ class CalendarCog(commands.Cog):
     async def on_ready(self):
         logger.info("Calendar Module Loaded")
         self.eventsToday.start()
-        self.postingChannel = await self.bot.fetch_channel(int(config.get("General", "organize")))
+
 
     # end region
 
@@ -128,6 +128,7 @@ class CalendarCog(commands.Cog):
     @tasks.loop(hours=1)
     # @tasks.loop(time=[datetime.time(hour=11)])
     async def eventsToday(self):
+        postingChannel = await self.bot.fetch_channel(int(config.get("General", "organize")))
         try:
             events = await self.gCalFuture()
             if len(events) > 0:
@@ -146,7 +147,7 @@ class CalendarCog(commands.Cog):
                     timestamp=datetime.datetime.now()
                 )
                 logger.info("Sent todays events")
-                await self.postingChannel.send(embed=embed)
+                await postingChannel.send(embed=embed)
             else:
                 logger.info("No events today")
 
