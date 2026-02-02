@@ -51,6 +51,7 @@ class CalendarCog(commands.Cog):
 
         eventList = []
         for event in events:
+            location = None
             # print(f"Event Summary: {event['summary']}")
             if "dateTime" in event["start"].keys():
                 startTime = datetime.datetime.strptime(event['start']['dateTime'], "%Y-%m-%dT%H:%M:%S%z")
@@ -58,8 +59,11 @@ class CalendarCog(commands.Cog):
             elif "date" in event["start"].keys():
                 startTime = datetime.datetime.strptime(event['start']['date'], "%Y-%m-%d")
                 endTime = datetime.datetime.strptime(event['start']['date'], "%Y-%m-%d")
+
+            if "location" in event.keys():
+                location = event["location"]
             
-            eventList.append(tuple((event['summary'], startTime, endTime)))
+            eventList.append(tuple((event['summary'], startTime, endTime, location)))
 
         return eventList
     # end region
@@ -74,9 +78,15 @@ class CalendarCog(commands.Cog):
                 TIMEFORMAT = "%I:%M%p"
                 for event in events:
                     if event[1] == event[2]:
-                        outString = f'All Day: {event[0]}\n' + outString
+                        if event[3] is not None:
+                            outString = f'All Day: {event[0]} at {event[3]} \n' + outString
+                        else:
+                            outString = f'All Day: {event[0]}\n' + outString
                     else:
-                        outString += f'{event[0]} from {event[1].strftime(TIMEFORMAT)} to {event[2].strftime(TIMEFORMAT)}\n'
+                        if event[3] is not None:
+                            outString += f'{event[0]} at {event[3]} from {event[1].strftime(TIMEFORMAT)} to {event[2].strftime(TIMEFORMAT)}\n'
+                        else:
+                            outString += f'{event[0]} from {event[1].strftime(TIMEFORMAT)} to {event[2].strftime(TIMEFORMAT)}\n'
 
                 embed = discord.Embed(
                     title=f'Today\'s events:',
@@ -103,9 +113,15 @@ class CalendarCog(commands.Cog):
                 TIMEFORMAT = "%I:%M%p"
                 for event in events:
                     if event[1] == event[2]:
-                        outString = f'All Day: {event[0]}\n' + outString
+                        if event[3] is not None:
+                            outString = f'All Day: {event[0]} at {event[3]} \n' + outString
+                        else:
+                            outString = f'All Day: {event[0]}\n' + outString
                     else:
-                        outString += f'{event[0]} from {event[1].strftime(TIMEFORMAT)} to {event[2].strftime(TIMEFORMAT)}\n'
+                        if event[3] is not None:
+                            outString += f'{event[0]} at {event[3]} from {event[1].strftime(TIMEFORMAT)} to {event[2].strftime(TIMEFORMAT)}\n'
+                        else:
+                            outString += f'{event[0]} from {event[1].strftime(TIMEFORMAT)} to {event[2].strftime(TIMEFORMAT)}\n'
 
                 embed = discord.Embed(
                     title=f'#{days} days into the future events:',
@@ -136,9 +152,15 @@ class CalendarCog(commands.Cog):
                 TIMEFORMAT = "%I:%M%p"
                 for event in events:
                     if event[1] == event[2]:
-                        outString = f'All Day: {event[0]}\n' + outString
+                        if event[3] is not None:
+                            outString = f'All Day: {event[0]} at {event[3]} \n' + outString
+                        else:
+                            outString = f'All Day: {event[0]}\n' + outString
                     else:
-                        outString += f'{event[0]} from {event[1].strftime(TIMEFORMAT)} to {event[2].strftime(TIMEFORMAT)}\n'
+                        if event[3] is not None:
+                            outString += f'{event[0]} at {event[3]} from {event[1].strftime(TIMEFORMAT)} to {event[2].strftime(TIMEFORMAT)}\n'
+                        else:
+                            outString += f'{event[0]} from {event[1].strftime(TIMEFORMAT)} to {event[2].strftime(TIMEFORMAT)}\n'
 
                 embed = discord.Embed(
                     title=f'Today\'s events:',
@@ -179,15 +201,20 @@ if __name__ == "__main__":
 
     eventList = []
     for event in events:
+        location = None
         # print(f"Event Summary: {event['summary']}")
+        print(event.keys())
         if "dateTime" in event["start"].keys():
             startTime = datetime.datetime.strptime(event['start']['dateTime'], "%Y-%m-%dT%H:%M:%S%z")
             endTime = datetime.datetime.strptime(event['end']['dateTime'], "%Y-%m-%dT%H:%M:%S%z")
         elif "date" in event["start"].keys():
             startTime = datetime.datetime.strptime(event['start']['date'], "%Y-%m-%d")
             endTime = datetime.datetime.strptime(event['start']['date'], "%Y-%m-%d")
+
+        if "location" in event.keys():
+            location = event["location"]
         
-        eventList.append(tuple((event['summary'], startTime, endTime)))
+        eventList.append(tuple((event['summary'], startTime, endTime, location)))
     if len(eventList) == 0:
         print("Benis")
     else:
@@ -195,9 +222,16 @@ if __name__ == "__main__":
         TIMEFORMAT = "%I:%M%p"
         for event in eventList:
             if event[1] == event[2]:
-                outString = f'All Day: {event[0]}\n' + outString
+                if event[3] is not None:
+                    outString = f'All Day: {event[0]} at {event[3]} \n' + outString
+                else:
+                    outString = f'All Day: {event[0]}\n' + outString
             else:
-                outString += f'{event[0]} from {event[1].strftime(TIMEFORMAT)} to {event[2].strftime(TIMEFORMAT)}\n'
+                if event[3] is not None:
+                    outString += f'{event[0]} at {event[3]} from {event[1].strftime(TIMEFORMAT)} to {event[2].strftime(TIMEFORMAT)}\n'
+                else:
+                    outString += f'{event[0]} from {event[1].strftime(TIMEFORMAT)} to {event[2].strftime(TIMEFORMAT)}\n'
+                    
 
 
         print(outString)
