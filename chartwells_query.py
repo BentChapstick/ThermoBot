@@ -25,8 +25,10 @@ date_2days = (datetime.now(timezone(timedelta(hours=-4))) + timedelta(2)).strfti
 dates = {"today": date_today, "tomorrow": date_tomorrow, "2 days": date_2days}
 
 # API URLs
-period_request = "https://api.dineoncampus.com/v1/location/{location}/periods?platform=0&date={date}"
-meal_data_request = "https://api.dineoncampus.com/v1/location/{location}/periods/{period}?platform=0&date={date}"
+# https://apiv4.dineoncampus.com/locations/64b9990ec625af0685fb939d/periods/?date=2026-02-16
+period_request = "https://apiv4.dineoncampus.com/location/{location}/periods/?date={date}"
+# https://apiv4.dineoncampus.com/locations/64b9990ec625af0685fb939d/menu?date=2026-02-16&period=6992dab154c66406ba4d0091
+meal_data_request = "https://apiv4.dineoncampus.com/location/{location}/menu?date={date}&period={period}"
 
 dining_locations = {}
 request_spacing_seconds = .5
