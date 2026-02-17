@@ -3,7 +3,9 @@
 import os
 from inspect import _empty
 import sqlite3
-from datetime import date
+
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from enum import Enum
 
 class Hall(Enum):
@@ -39,7 +41,7 @@ def query(query):
         return None
 
 def currentDate():
-    currentDate = date.today()
+    currentDate = datetime.now(ZoneInfo("America/New_York")).strftime('%Y-%m-%d')
 
 
     return currentDate
