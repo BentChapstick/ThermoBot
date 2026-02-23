@@ -44,7 +44,7 @@ class CalendarCog(commands.Cog):
     @app_commands.command(name="test_calendar", description="Test Calendar Integration")
     async def test_calendar(self, interaction: discord.Interaction):
         try:
-            events = await self.gCalFuture()
+            events = await self.interface.gCalFuture()
             if len(events) > 0:
                 processed = await self.interface.eventProcess()
 
