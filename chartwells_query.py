@@ -4,6 +4,7 @@ import json
 import time
 import os
 from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
 from fake_useragent import UserAgent
 from time import mktime, localtime, strftime
 import termcolor as tc
@@ -19,14 +20,17 @@ else:
     database_path = "Database/dish.db"
 
 # Date setup
-date_today = datetime.now(timezone(timedelta(hours=-4))).strftime('%Y-%m-%d')
-date_tomorrow = (datetime.now(timezone(timedelta(hours=-4))) + timedelta(1)).strftime('%Y-%m-%d')
-date_2days = (datetime.now(timezone(timedelta(hours=-4))) + timedelta(2)).strftime('%Y-%m-%d')
-dates = {"today": date_today, "tomorrow": date_tomorrow, "2 days": date_2days}
+campus_tz = ZoneInfo("America/New_York")
+date_today = datetime.now(campus_tz).strftime('%Y-%m-%d')
+date_tomorrow = (datetime.now(campus_tz) + timedelta(1)).strftime('%Y-%m-%d')
+date_2days = (datetime.now(campus_tz) + timedelta(2)).strftime('%Y-%m-%d')
+dates = {"today": date_today} # , "tomorrow": date_tomorrow, "2 days": date_2days}
 
 # API URLs
-period_request = "https://api.dineoncampus.com/v1/location/{location}/periods?platform=0&date={date}"
-meal_data_request = "https://api.dineoncampus.com/v1/location/{location}/periods/{period}?platform=0&date={date}"
+# https://apiv4.dineoncampus.com/locations/64b9990ec625af0685fb939d/periods/?date=2026-02-16
+period_request = "https://apiv4.dineoncampus.com/locations/{location}/periods/?date={date}"
+# https://apiv4.dineoncampus.com/locations/64b9990ec625af0685fb939d/menu?date=2026-02-16&period=6992dab154c66406ba4d0091
+meal_data_request = "https://apiv4.dineoncampus.com/locations/{location}/menu?date={date}&period={period}"
 
 dining_locations = {}
 request_spacing_seconds = .5
@@ -36,9 +40,9 @@ def main():
     db_cursor = db_connection.cursor()
 
     # Delete the future meals to ensure they are up to date. 
-    for date in dates:
-        print(f"DELETE FROM menuItems WHERE date = '{dates[date]}'")
-        db_cursor.execute(f"DELETE FROM menuItems WHERE date = '{dates[date]}'")
+    # for date in dates:
+    #     print(f"DELETE FROM menuItems WHERE date = '{dates[date]}'")
+    #     db_cursor.execute(f"DELETE FROM menuItems WHERE date = '{dates[date]}'")
 
     # Get locations from database
     db_cursor.execute("SELECT * FROM locations")
@@ -83,6 +87,7 @@ def get_periods(date_time: str, location: str) -> list:
 
 def get_meal_data(period, date_time, location):
     request_string = meal_data_request.format(period=period, date=date_time, location=dining_locations[location])
+    print(request_string)
     try:
         headers = {"User-Agent": ua.random}  # Randomized user agent
         response = scraper.get(request_string, headers=headers, timeout=30)
@@ -96,28 +101,43 @@ def get_meal_data(period, date_time, location):
         print(f"Error fetching meal data: {e}")
     return -1
 
-def process_meal_data(meal_json, period, date_time, location, db_cursor):
-    categories = meal_json.get("menu", {}).get("periods", {}).get("categories", [])
+def process_meal_data(meal_json, period_info, date_time, location, db_cursor):
+    categories = meal_json.get("period", {}).get("categories", [])
+
     for category in categories:
-        station_name = category["name"]
-        for item in category["items"]:
-            item.update({
-                "time": period["name"],
-                "date": date_time,
-                "location": location,
-                "station": station_name,
-                "nutrients_json": handle_nutrients(db_cursor, item)
-            })
+        station_name = category.get("name")
+        
+        for item in category.get("items"):
+            # Nutrient Handling TODO Not yet updated for new JSON
+            nutrients_json = None #handle_nutrients(db_cursor, item)
             
-            allergens_list = [f["name"] for f in item.get("filters", []) if f["type"] == "allergen"]
-            labels_list = [f["name"] for f in item.get("filters", []) if f["type"] == "label"]
-            item["allergens_json"] = str(allergens_list)
-            item["labels_json"] = str(labels_list)
+            # 3. Allergens/Labels)
+            # In your snippet, there is no 'type' key. We have to guess by name or save all.
+            # Here we just grab all filter names as labels/allergens.
+            all_filters = [f["name"] for f in item.get("filters", [])]
             
-            db_cursor.execute("INSERT OR REPLACE INTO menuItems VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                (item["name"], station_name, item.get("ingredients", ""), item.get("portion", ""),
-                item.get("desc", ""), item["nutrients_json"], item.get("calories", ""),
-                date_time, period["name"], location, item["allergens_json"], item["labels_json"], item.get("sort_order", 0)))
+            # 4. Prepare data for SQL
+            # Make sure this matches your 13-column table structure exactly
+            vals = (
+                item.get("name"),
+                station_name,
+                item.get("ingredients", ""),
+                item.get("portion", ""),
+                item.get("desc", ""),
+                nutrients_json,
+                item.get("calories", ""),
+                date_time,
+                period_info["name"],
+                location,
+                str(all_filters), # allergens_json
+                str(all_filters), # labels_json
+                item.get("sortOrder", 0) 
+            )
+            
+            try:
+                db_cursor.execute("INSERT OR REPLACE INTO menuItems VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", vals)
+            except Exception as e:
+                print(f"SQL Error inserting {item.get('name')}: {e}")
 
 def handle_nutrients(db_cursor, item):
     nutrients_list = [{"name": n["name"], "value": n["value"], "uom": n["uom"], "value_numeric": n.get("value_numeric", "")} for n in item.get("nutrients", [])]
