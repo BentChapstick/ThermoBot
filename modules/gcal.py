@@ -31,7 +31,7 @@ class CalendarCog(commands.Cog):
 
     # end region
 
-    async def eventEmbed(titlecard: str, description: str) -> discord.Embed:
+    async def eventEmbed(self, titlecard: str, description: str) -> discord.Embed:
         embed = discord.Embed(
             title=titlecard,
             description=description,
@@ -46,7 +46,7 @@ class CalendarCog(commands.Cog):
         try:
             events = await self.interface.gCalFuture()
             if len(events) > 0:
-                processed = await self.interface.eventProcess()
+                processed = await self.interface.eventProcess(events)
 
                 embed = await self.eventEmbed(f'Today\'s events:', processed)
 
@@ -57,7 +57,7 @@ class CalendarCog(commands.Cog):
                 logger.info("No events today")
 
         except Exception as e:
-            print(f'Someone shoot me {e}')
+            print(f'Someone shoot me\n {e}')
             logger.error(e)
 
     @app_commands.command(name="calendar_future", description="# days into future")
@@ -65,7 +65,7 @@ class CalendarCog(commands.Cog):
         try:
             events = await self.interface.gCalFuture(days)
             if len(events) > 0:
-                processed = await self.interface.eventProcess()
+                processed = await self.interface.eventProcess(events)
 
                 embed = await self.eventEmbed(f'#{days} days into the future events:', processed)
     
@@ -98,7 +98,7 @@ class CalendarCog(commands.Cog):
                 logger.info("No events today")
 
         except Exception as e:
-            print(f'Someone shoot me {e}')
+            print(f'Someone shoot me \n {e}')
             logger.error(e)
 
     # end region
