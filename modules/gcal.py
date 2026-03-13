@@ -88,7 +88,7 @@ class CalendarCog(commands.Cog):
         try:
             events = await self.interface.gCalFuture()
             if len(events) > 0:
-                processed = await self.interface.eventProcess()
+                processed = await self.interface.eventProcess(events)
 
                 embed = await self.eventEmbed(f'Today\'s events:', processed)
 
