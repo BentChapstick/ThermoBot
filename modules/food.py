@@ -162,19 +162,21 @@ class foodCog(commands.Cog):
     # end region
 
     # region autolooping tasks
-    @tasks.loop(time=datetime.time(hour=7, minute=5, tzinfo=zoneinfo.ZoneInfo("America/Detroit"))) #Refresh Menu at 7 am
-    async def pullMenuTask(self):
-        await chartwells_queryFast.main()
-        
-    @tasks.loop(time=datetime.time(hour=9, minute=0, tzinfo=zoneinfo.ZoneInfo("America/Detroit")))
-    async def daily_poll_task(self):
-        channel = self.bot.get_channel(self.food_channel)
-        # print dinner options
-        message = await self.dinnerOptions("Dinner")
-        await channel.send(message)
 
-        # Run the poll
-        await self.run_dinner_poll(channel)
+    # Deactivated due to no one living on campus anymore
+    # @tasks.loop(time=datetime.time(hour=7, minute=5, tzinfo=zoneinfo.ZoneInfo("America/Detroit"))) #Refresh Menu at 7 am
+    # async def pullMenuTask(self):
+    #     await chartwells_queryFast.main()
+        
+    # @tasks.loop(time=datetime.time(hour=9, minute=0, tzinfo=zoneinfo.ZoneInfo("America/Detroit")))
+    # async def daily_poll_task(self):
+    #     channel = self.bot.get_channel(self.food_channel)
+    #     # print dinner options
+    #     message = await self.dinnerOptions("Dinner")
+    #     await channel.send(message)
+
+    #     # Run the poll
+    #     await self.run_dinner_poll(channel)
     # end region
 async def setup(bot: commands.Bot):
     await bot.add_cog(foodCog(bot))
