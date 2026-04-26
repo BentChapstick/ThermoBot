@@ -25,12 +25,14 @@ class foodCog(commands.Cog):
         self.poll_question = "When and where are we doing family dinner?"
         self.poll_options = ["McNair", "Wadsworth", "DHH", "4:30", "5:00", "5:30", "6:00"]
         self.dining_hall_is_open = {"McNair" : True, "Wadsworth" : True, "DHH" : True}
+        self.food_poll = bool(config.get("General","food_poll"))
 
     # region Listeners
     @commands.Cog.listener()
     async def on_ready(self):
         self.pullMenuTask.start()
-        self.daily_poll_task.start()
+        if self.food_poll:
+            self.daily_poll_task.start()
 
     # end region
 
@@ -163,20 +165,19 @@ class foodCog(commands.Cog):
 
     # region autolooping tasks
 
-    # Deactivated due to no one living on campus anymore
-    # @tasks.loop(time=datetime.time(hour=7, minute=5, tzinfo=zoneinfo.ZoneInfo("America/Detroit"))) #Refresh Menu at 7 am
-    # async def pullMenuTask(self):
-    #     await chartwells_queryFast.main()
+    @tasks.loop(time=datetime.time(hour=7, minute=5, tzinfo=zoneinfo.ZoneInfo("America/Detroit"))) #Refresh Menu at 7 am
+    async def pullMenuTask(self):
+        await chartwells_queryFast.main()
         
-    # @tasks.loop(time=datetime.time(hour=9, minute=0, tzinfo=zoneinfo.ZoneInfo("America/Detroit")))
-    # async def daily_poll_task(self):
-    #     channel = self.bot.get_channel(self.food_channel)
-    #     # print dinner options
-    #     message = await self.dinnerOptions("Dinner")
-    #     await channel.send(message)
+    @tasks.loop(time=datetime.time(hour=9, minute=0, tzinfo=zoneinfo.ZoneInfo("America/Detroit")))
+    async def daily_poll_task(self):
+        channel = self.bot.get_channel(self.food_channel)
+        # print dinner options
+        message = await self.dinnerOptions("Dinner")
+        await channel.send(message)
 
-    #     # Run the poll
-    #     await self.run_dinner_poll(channel)
+        # Run the poll
+        await self.run_dinner_poll(channel)
     # end region
 async def setup(bot: commands.Bot):
     await bot.add_cog(foodCog(bot))

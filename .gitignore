@@ -9,3 +9,4 @@ Token
 *.log
 /gCalSecret.json
 /.vscode
+*.pyc
