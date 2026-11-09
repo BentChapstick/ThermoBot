@@ -171,13 +171,14 @@ class foodCog(commands.Cog):
         
     @tasks.loop(time=datetime.time(hour=9, minute=0, tzinfo=zoneinfo.ZoneInfo("America/Detroit")))
     async def daily_poll_task(self):
-        channel = self.bot.get_channel(self.food_channel)
-        # print dinner options
-        message = await self.dinnerOptions("Dinner")
-        await channel.send(message)
+        if (self.food_poll):
+            channel = self.bot.get_channel(self.food_channel)
+            # print dinner options
+            message = await self.dinnerOptions("Dinner")
+            await channel.send(message)
 
-        # Run the poll
-        await self.run_dinner_poll(channel)
+            # Run the poll
+            await self.run_dinner_poll(channel)
     # end region
 async def setup(bot: commands.Bot):
     await bot.add_cog(foodCog(bot))
